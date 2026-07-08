@@ -1,4 +1,5 @@
 import os
+import threading
 
 # ============================================================
 #  CREDENCIALES DE TELEGRAM (OBLIGATORIAS DESDE ENTORNO)
@@ -6,20 +7,13 @@ import os
 TOKEN_TELEGRAM = os.environ.get("TOKEN_TELEGRAM")
 CHAT_ID_TELEGRAM = os.environ.get("CHAT_ID_TELEGRAM")
 
-# Validación estricta: si faltan, el programa no arranca.
 if not TOKEN_TELEGRAM:
-    raise EnvironmentError(
-        "❌ La variable de entorno TOKEN_TELEGRAM no está definida.\n"
-        "   Configúrala en Render o en tu archivo .env"
-    )
+    raise EnvironmentError("❌ Falta TOKEN_TELEGRAM en variables de entorno")
 if not CHAT_ID_TELEGRAM:
-    raise EnvironmentError(
-        "❌ La variable de entorno CHAT_ID_TELEGRAM no está definida.\n"
-        "   Configúrala en Render o en tu archivo .env"
-    )
+    raise EnvironmentError("❌ Falta CHAT_ID_TELEGRAM en variables de entorno")
 
 # ============================================================
-#  ALMACENAMIENTO CENTRAL EN MEMORIA (compartido entre módulos)
+#  ALMACENAMIENTO CENTRAL EN MEMORIA
 # ============================================================
 datos_mercado = {
     "precio_actual": 0.0,
@@ -29,5 +23,7 @@ datos_mercado = {
     "hora_venezuela": "--:--"
 }
 
-# Historial de análisis (máximo 5 entradas, se gestiona en bot.py)
-historial_analisis = []
+historial_analisis = []   # Máximo 5 entradas (se controla en bot.py)
+
+# Evento para notificar cambios (usado en SSE)
+actualizacion_event = threading.Event()

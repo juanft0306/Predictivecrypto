@@ -81,15 +81,11 @@
             transition: all 0.3s ease;
             border-radius: 9999px;
         }
-        .menu-toggle:hover span {
-            background: #a5b4fc;
-        }
+        .menu-toggle:hover span { background: #a5b4fc; }
         .menu-toggle.active span:nth-child(1) {
             transform: rotate(45deg) translate(4px, 4px);
         }
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
         .menu-toggle.active span:nth-child(3) {
             transform: rotate(-45deg) translate(4px, -4px);
         }
@@ -124,14 +120,43 @@
             color: #818cf8;
             font-weight: 600;
         }
-        /* Posición relativa para el menú */
         .menu-wrapper { position: relative; }
+
+        /* BOTÓN FIJO EN ESQUINA SUPERIOR DERECHA */
+        .btn-flotante {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+        }
+        /* Margen para que el contenido no se superponga */
+        .contenido-principal {
+            padding-top: 4rem; /* espacio para el botón fijo */
+        }
+        @media (max-width: 640px) {
+            .btn-flotante {
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+            .btn-flotante span {
+                display: none;
+            }
+            .btn-flotante i {
+                margin-right: 0;
+            }
+            .contenido-principal {
+                padding-top: 3.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="max-w-6xl mx-auto">
+    <div class="contenido-principal max-w-6xl mx-auto">
 
-        <!-- HEADER / NAVEGACIÓN CON HAMBURGUESA -->
+        <!-- HEADER / NAVEGACIÓN (sin el botón, ahora está fijo) -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
@@ -154,9 +179,6 @@
                 <span class="estado-badge hidden sm:inline-block">
                     <i class="fas fa-circle text-emerald-400 text-xs mr-1"></i> Conectado
                 </span>
-                <button id="btn-alerta" class="btn-gradient text-white font-bold py-2 px-4 rounded-xl text-xs shadow-lg flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i> <span class="hidden sm:inline">Enviar alerta</span>
-                </button>
             </div>
         </div>
 
@@ -211,6 +233,11 @@
 
     </div>
 
+    <!-- BOTÓN FLOTANTE (SIEMPRE VISIBLE) -->
+    <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold py-2.5 px-5 rounded-xl text-sm shadow-lg flex items-center gap-2">
+        <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
+    </button>
+
     <script>
         // ============================================================
         //  MENÚ HAMBURGUESA
@@ -219,7 +246,6 @@
             this.classList.toggle('active');
             document.getElementById('menuDropdown').classList.toggle('open');
         });
-        // Cerrar al hacer clic fuera
         document.addEventListener('click', function(e) {
             const wrapper = document.querySelector('.menu-wrapper');
             if (!wrapper.contains(e.target)) {
@@ -280,9 +306,9 @@
         };
 
         // ============================================================
-        //  BOTÓN DE ALERTA MANUAL
+        //  BOTÓN DE ALERTA (FLOTANTE)
         // ============================================================
-        document.getElementById('btn-alerta').addEventListener('click', async function() {
+        document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
             const original = this.innerHTML;
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';

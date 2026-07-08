@@ -9,12 +9,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ============================================================
-           ESTILOS BASE
+           ESTILOS (igual que antes, con algunas adiciones)
            ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        * {
-            font-family: 'Inter', sans-serif;
-        }
+        * { font-family: 'Inter', sans-serif; }
         body {
             background: radial-gradient(ellipse at top, #0f172a, #020617);
             min-height: 100vh;
@@ -25,14 +23,14 @@
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             transition: all 0.3s ease;
         }
         .glass-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            border-color: rgba(99,102,241,0.3);
         }
         .btn-gradient {
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -40,26 +38,17 @@
         }
         .btn-gradient:hover {
             transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 30px rgba(99,102,241,0.4);
         }
-        .btn-gradient:active {
-            transform: scale(0.98);
-        }
-        .badge-pulse {
-            animation: pulse 2s infinite;
-        }
+        .btn-gradient:active { transform: scale(0.98); }
+        .badge-pulse { animation: pulse 2s infinite; }
         @keyframes pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
             100% { opacity: 0.7; }
         }
-        .statu-text {
-            color: #94a3b8;
-            font-size: 0.75rem;
-        }
-        input[type="number"]::-webkit-inner-spin-button {
-            opacity: 0.5;
-        }
+        .statu-text { color: #94a3b8; font-size: 0.75rem; }
+        input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
         .progress-bar {
             height: 8px;
             background: #1e293b;
@@ -71,7 +60,6 @@
             border-radius: 9999px;
             transition: width 0.5s ease;
         }
-        /* Menú hamburguesa */
         .menu-toggle {
             cursor: pointer;
             display: flex;
@@ -87,15 +75,11 @@
             transition: all 0.3s ease;
             border-radius: 9999px;
         }
-        .menu-toggle:hover span {
-            background: #a5b4fc;
-        }
+        .menu-toggle:hover span { background: #a5b4fc; }
         .menu-toggle.active span:nth-child(1) {
             transform: rotate(45deg) translate(4px, 4px);
         }
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
         .menu-toggle.active span:nth-child(3) {
             transform: rotate(-45deg) translate(4px, -4px);
         }
@@ -104,18 +88,16 @@
             position: absolute;
             top: 100%;
             right: 0;
-            background: rgba(30, 41, 59, 0.95);
+            background: rgba(30,41,59,0.95);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             padding: 0.5rem 0;
             min-width: 150px;
             z-index: 50;
         }
-        .menu-dropdown.open {
-            display: block;
-        }
+        .menu-dropdown.open { display: block; }
         .menu-dropdown a {
             display: block;
             padding: 0.5rem 1rem;
@@ -125,23 +107,20 @@
             transition: all 0.2s;
         }
         .menu-dropdown a:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(99,102,241,0.1);
             color: #a5b4fc;
         }
         .menu-dropdown a.active {
             color: #818cf8;
             font-weight: 600;
         }
-        .menu-wrapper {
-            position: relative;
-        }
-        /* BOTÓN FLOTANTE INFERIOR DERECHA */
+        .menu-wrapper { position: relative; }
         .btn-flotante {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
             z-index: 9999;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 4px 20px rgba(99,102,241,0.5);
             padding: 0.75rem 1.5rem;
             border-radius: 9999px;
             font-size: 1rem;
@@ -153,15 +132,33 @@
                 padding: 0.6rem 1.2rem;
                 font-size: 0.85rem;
             }
-            .btn-flotante span {
-                display: inline;
-            }
+            .btn-flotante span { display: inline; }
+        }
+        select {
+            background-color: #1e293b;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        select:focus {
+            border-color: #6366f1;
+        }
+        .moneda-badge {
+            display: inline-block;
+            background: rgba(99,102,241,0.15);
+            padding: 0.15rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            color: #a5b4fc;
         }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
-        <!-- HEADER (sin botón) -->
+        <!-- HEADER -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <h1 class="text-2xl font-bold text-white flex items-center gap-2">
@@ -185,21 +182,29 @@
             </div>
         </div>
 
-        <!-- TÍTULO -->
-        <div class="mb-6">
-            <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                <i class="fas fa-coins text-emerald-400"></i> Seguimiento de Inversión
-            </h2>
-            <p class="text-slate-400 text-sm mt-1">Monitorea el rendimiento de tu posición en BTC en tiempo real</p>
+        <!-- TÍTULO Y SELECTOR DE MONEDA -->
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <i class="fas fa-coins text-emerald-400"></i> Seguimiento de Inversión
+                </h2>
+                <p class="text-slate-400 text-sm mt-1">Monitorea el rendimiento de tu posición en la moneda seleccionada</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-slate-400 text-sm">Moneda:</span>
+                <select id="selector-moneda" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm">
+                    <!-- JS llena -->
+                </select>
+            </div>
         </div>
 
         <!-- RESUMEN (4 tarjetas) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div class="glass-card rounded-2xl p-5">
                 <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-bitcoin-sign"></i> Cantidad BTC
+                    <i class="fas fa-coins"></i> Cantidad
                 </p>
-                <p class="text-2xl font-bold text-white" id="cantidad-btc">0.00000000</p>
+                <p class="text-2xl font-bold text-white" id="cantidad-inversion">0.00000000</p>
             </div>
             <div class="glass-card rounded-2xl p-5">
                 <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
@@ -236,14 +241,15 @@
             </div>
         </div>
 
-        <!-- CONFIGURACIÓN -->
+        <!-- CONFIGURACIÓN DE INVERSIÓN -->
         <div class="glass-card rounded-2xl p-6 mb-6">
             <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
                 <i class="fas fa-sliders-h text-indigo-400"></i> Configurar Inversión
+                <span class="moneda-badge" id="moneda-badge">BTC</span>
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Cantidad de BTC</label>
+                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Cantidad de la moneda</label>
                     <input type="number" id="input-cantidad" step="0.00000001" min="0"
                            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
                            placeholder="Ej: 0.00006790">
@@ -291,27 +297,27 @@
                 <h4 class="text-white font-semibold flex items-center gap-2">
                     <i class="fas fa-clock text-slate-400"></i> Historial de Precios
                 </h4>
-                <span class="text-xs text-slate-500">Últimas 10 actualizaciones</span>
+                <span class="text-xs text-slate-500">Últimas 5 actualizaciones</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="text-left text-slate-400 border-b border-slate-700/50">
                             <th class="py-2 px-3 font-medium">Fecha</th>
-                            <th class="py-2 px-3 font-medium text-right">Precio BTC</th>
-                            <th class="py-2 px-3 font-medium text-right">Estado</th>
+                            <th class="py-2 px-3 font-medium text-right">Precio</th>
+                            <th class="py-2 px-3 font-medium text-right">Estado RSI</th>
                             <th class="py-2 px-3 font-medium text-right">Valor Inversión</th>
                         </tr>
                     </thead>
                     <tbody id="historial-detallado" class="divide-y divide-slate-700/30">
-                        <!-- JS llena esto -->
+                        <!-- JS llena -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- BOTÓN FLOTANTE INFERIOR DERECHA -->
+    <!-- BOTÓN FLOTANTE -->
     <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
         <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
     </button>
@@ -333,7 +339,7 @@
         });
 
         // ============================================================
-        //  BOTÓN FLOTANTE INFERIOR DERECHA
+        //  BOTÓN FLOTANTE
         // ============================================================
         document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
             const original = this.innerHTML;
@@ -366,7 +372,7 @@
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Precio BTC (USD)',
+                        label: 'Precio (USD)',
                         data: [],
                         borderColor: '#818cf8',
                         backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -415,38 +421,77 @@
             console.log('✅ Gráficos inicializados correctamente');
         }
 
-        // ============================================================
-        //  SSE (EventSource) – ACTUALIZACIÓN EN TIEMPO REAL
+                // ============================================================
+        //  SSE – ACTUALIZACIÓN EN TIEMPO REAL
         // ============================================================
         const estadoConexion = document.getElementById('estado-conexion');
+        const selectorMoneda = document.getElementById('selector-moneda');
+        const monedaBadge = document.getElementById('moneda-badge');
+
+        // Llenar selector de monedas (se actualiza con los datos del servidor)
+        function actualizarSelector(monedas, seleccionada) {
+            const current = selectorMoneda.value;
+            selectorMoneda.innerHTML = '';
+            for (const symbol of Object.keys(monedas)) {
+                const nombre = monedas[symbol].nombre || symbol;
+                const opt = document.createElement('option');
+                opt.value = symbol;
+                opt.textContent = `${nombre} (${symbol.replace('USDT', '')})`;
+                if (symbol === seleccionada) opt.selected = true;
+                selectorMoneda.appendChild(opt);
+            }
+            if (seleccionada && selectorMoneda.value !== seleccionada) {
+                selectorMoneda.value = seleccionada;
+            }
+        }
+
+        let currentMoneda = 'BTCUSDT';
+        let currentCantidad = 0;
+        let currentObjetivo = 0;
+
         const source = new EventSource('/api/stream');
         source.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data);
                 const d = data.datos;
-                const inv = data.inversion || {};
+                const inversiones = data.inversiones || {};
+                const monedaSel = data.moneda_seleccionada || 'BTCUSDT';
 
-                estadoConexion.innerText = 'Conectado';
+                // Actualizar selector si cambió la lista de monedas (solo al inicio o si cambia)
+                if (selectorMoneda.options.length === 0) {
+                    actualizarSelector(d, monedaSel);
+                } else if (selectorMoneda.value !== monedaSel && monedaSel) {
+                    selectorMoneda.value = monedaSel;
+                }
 
-                const cantidad = inv.cantidad_btc || 0;
-                const objetivo = inv.precio_objetivo || 0;
-                const precioActual = d.precio_actual || 0;
-                const valorActual = cantidad * precioActual;
-                const ganancia = objetivo > 0 ? ((precioActual - objetivo) / objetivo) * 100 : 0;
+                currentMoneda = monedaSel;
+                const info = d[monedaSel] || {};
+                const inv = inversiones[monedaSel] || { cantidad: 0, objetivo: 0 };
+                currentCantidad = inv.cantidad || 0;
+                currentObjetivo = inv.objetivo || 0;
 
-                document.getElementById('cantidad-btc').innerText = cantidad.toFixed(8);
+                // Actualizar badge
+                monedaBadge.innerText = monedaSel.replace('USDT', '');
+
+                // Resumen
+                const precio = info.precio_actual || 0;
+                const valorActual = currentCantidad * precio;
+                const ganancia = currentObjetivo > 0 ? ((precio - currentObjetivo) / currentObjetivo) * 100 : 0;
+
+                document.getElementById('cantidad-inversion').innerText = currentCantidad.toFixed(8);
                 document.getElementById('valor-inversion').innerText = '$' + valorActual.toFixed(2);
-                document.getElementById('precio-objetivo').innerText = '$' + objetivo.toFixed(2);
+                document.getElementById('precio-objetivo').innerText = '$' + currentObjetivo.toFixed(2);
                 const gpEl = document.getElementById('ganancia-perdida');
                 gpEl.innerText = (ganancia > 0 ? '+' : '') + ganancia.toFixed(2) + '%';
                 gpEl.className = 'text-2xl font-bold ' + (ganancia > 0 ? 'text-emerald-400' : ganancia < 0 ? 'text-red-400' : 'text-slate-400');
 
-                if (objetivo > 0) {
-                    const progreso = Math.min((precioActual / objetivo) * 100, 100);
+                // Barra de progreso
+                if (currentObjetivo > 0) {
+                    const progreso = Math.min((precio / currentObjetivo) * 100, 100);
                     document.getElementById('progreso-texto').innerText = progreso.toFixed(1) + '%';
                     document.getElementById('progreso-bar').style.width = progreso + '%';
-                    document.getElementById('objetivo-label').innerText = '$' + objetivo.toFixed(2);
-                    if (precioActual >= objetivo) {
+                    document.getElementById('objetivo-label').innerText = '$' + currentObjetivo.toFixed(2);
+                    if (precio >= currentObjetivo) {
                         document.getElementById('progreso-bar').className = 'progress-fill bg-gradient-to-r from-emerald-500 to-green-400';
                     } else {
                         document.getElementById('progreso-bar').className = 'progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400';
@@ -457,14 +502,15 @@
                     document.getElementById('objetivo-label').innerText = '$0';
                 }
 
+                // Cargar inputs (si no están enfocados)
                 if (!document.activeElement || (document.activeElement.id !== 'input-cantidad' && document.activeElement.id !== 'input-objetivo')) {
-                    document.getElementById('input-cantidad').value = cantidad || '';
-                    document.getElementById('input-objetivo').value = objetivo || '';
+                    document.getElementById('input-cantidad').value = currentCantidad || '';
+                    document.getElementById('input-objetivo').value = currentObjetivo || '';
                 }
 
-                const precio = d.precio_actual || 0;
-                const rsi = d.rsi || 50;
-                const hora = d.hora_venezuela || '--:--';
+                // Gráficos
+                const hora = info.hora_venezuela || '--:--';
+                const rsi = info.rsi || 50;
 
                 if (priceChartInstance) {
                     priceChartInstance.data.labels.push(hora);
@@ -486,10 +532,11 @@
                     rsiChartInstance.update('none');
                 }
 
+                // Historial detallado
                 const historial = data.historial || [];
                 const tbody = document.getElementById('historial-detallado');
                 tbody.innerHTML = historial.map(h => {
-                    const valorInv = cantidad * h.precio;
+                    const valorInv = currentCantidad * h.precio;
                     return `
                         <tr>
                             <td class="py-2 px-3 text-slate-400">${h.fecha}</td>
@@ -507,7 +554,9 @@
                     `;
                 }).join('') || '<tr><td colspan="4" class="text-center text-slate-500 py-4">No hay datos históricos aún</td></tr>';
 
-                console.log('📊 Datos actualizados:', { precio, rsi, cantidad, objetivo });
+                estadoConexion.innerText = 'Conectado';
+                console.log('📊 Datos actualizados para', currentMoneda);
+
             } catch (error) {
                 console.error('❌ Error procesando SSE:', error);
             }
@@ -519,7 +568,38 @@
         };
 
         // ============================================================
-        //  FUNCIONES DE INVERSIÓN (Botones Guardar, Limpiar, Alertar)
+        //  CAMBIO DE MONEDA (selector)
+        // ============================================================
+        selectorMoneda.addEventListener('change', async function() {
+            const symbol = this.value;
+            try {
+                const resp = await fetch('/api/cambiar_moneda', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol })
+                });
+                const data = await resp.json();
+                if (data.status !== 'ok') {
+                    console.warn('Error al cambiar moneda:', data.mensaje);
+                }
+                // Limpiar gráficos para que empiecen de nuevo con la nueva moneda
+                if (priceChartInstance) {
+                    priceChartInstance.data.labels = [];
+                    priceChartInstance.data.datasets[0].data = [];
+                    priceChartInstance.update();
+                }
+                if (rsiChartInstance) {
+                    rsiChartInstance.data.labels = [];
+                    rsiChartInstance.data.datasets[0].data = [];
+                    rsiChartInstance.update();
+                }
+            } catch (err) {
+                console.error('Error al cambiar moneda:', err);
+            }
+        });
+
+        // ============================================================
+        //  FUNCIONES DE INVERSIÓN
         // ============================================================
         const mensajeInversion = document.getElementById('mensaje-inversion');
 
@@ -532,7 +612,11 @@
                 const resp = await fetch('/api/actualizar_inversion', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cantidad_btc: cantidad, precio_objetivo: objetivo })
+                    body: JSON.stringify({
+                        symbol: currentMoneda,
+                        cantidad: cantidad,
+                        objetivo: objetivo
+                    })
                 });
                 const data = await resp.json();
                 if (data.status === 'ok') {
@@ -566,7 +650,11 @@
                 await fetch('/api/actualizar_inversion', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cantidad_btc: 0, precio_objetivo: 0 })
+                    body: JSON.stringify({
+                        symbol: currentMoneda,
+                        cantidad: 0,
+                        objetivo: 0
+                    })
                 });
                 mensajeInversion.innerHTML = '<span class="text-slate-400">🧹 Datos limpiados</span>';
             } catch (err) {
@@ -597,5 +685,6 @@
             console.log('🚀 Página de inversión cargada y lista');
         });
     </script>
+    <!-- BOTÓN FLOTANTE (ya está en el HTML, pero lo mantenemos) -->
 </body>
 </html>

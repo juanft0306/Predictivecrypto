@@ -8,38 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        * {
-            font-family: 'Inter', sans-serif;
-        }
+        * { font-family: 'Inter', sans-serif; }
         body {
             background: radial-gradient(ellipse at top, #0f172a, #020617);
             min-height: 100vh;
             padding: 1.5rem;
-            padding-bottom: 6rem; /* espacio para el botón flotante */
+            padding-bottom: 6rem;
         }
         .glass-card {
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             transition: all 0.3s ease;
         }
         .glass-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-        .price-glow {
-            text-shadow: 0 0 40px rgba(52, 211, 153, 0.2);
-        }
-        .badge-pulse {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            border-color: rgba(99,102,241,0.3);
         }
         .btn-gradient {
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -47,43 +34,25 @@
         }
         .btn-gradient:hover {
             transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 30px rgba(99,102,241,0.4);
         }
-        .btn-gradient:active {
-            transform: scale(0.98);
-        }
-        .historico-item {
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-        }
-        .historico-item:hover {
-            background: rgba(99, 102, 241, 0.05);
-            border-left-color: #6366f1;
-            padding-left: 0.5rem;
-        }
-        .rsi-neutral {
-            color: #fbbf24;
-        }
-        .rsi-sobrevendido {
-            color: #60a5fa;
-        }
-        .rsi-sobrecomprado {
-            color: #f87171;
+        .btn-gradient:active { transform: scale(0.98); }
+        .badge-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
         }
         .estado-badge {
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.2);
             padding: 0.2rem 0.8rem;
             border-radius: 9999px;
             font-size: 0.7rem;
             font-weight: 600;
             color: #a5b4fc;
         }
-        .statu-text {
-            color: #94a3b8;
-            font-size: 0.75rem;
-        }
-        /* Menú hamburguesa */
+        .statu-text { color: #94a3b8; font-size: 0.75rem; }
         .menu-toggle {
             cursor: pointer;
             display: flex;
@@ -99,15 +68,11 @@
             transition: all 0.3s ease;
             border-radius: 9999px;
         }
-        .menu-toggle:hover span {
-            background: #a5b4fc;
-        }
+        .menu-toggle:hover span { background: #a5b4fc; }
         .menu-toggle.active span:nth-child(1) {
             transform: rotate(45deg) translate(4px, 4px);
         }
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
         .menu-toggle.active span:nth-child(3) {
             transform: rotate(-45deg) translate(4px, -4px);
         }
@@ -116,18 +81,16 @@
             position: absolute;
             top: 100%;
             right: 0;
-            background: rgba(30, 41, 59, 0.95);
+            background: rgba(30,41,59,0.95);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             padding: 0.5rem 0;
             min-width: 150px;
             z-index: 50;
         }
-        .menu-dropdown.open {
-            display: block;
-        }
+        .menu-dropdown.open { display: block; }
         .menu-dropdown a {
             display: block;
             padding: 0.5rem 1rem;
@@ -137,23 +100,20 @@
             transition: all 0.2s;
         }
         .menu-dropdown a:hover {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(99,102,241,0.1);
             color: #a5b4fc;
         }
         .menu-dropdown a.active {
             color: #818cf8;
             font-weight: 600;
         }
-        .menu-wrapper {
-            position: relative;
-        }
-        /* BOTÓN FLOTANTE - ESQUINA INFERIOR DERECHA */
+        .menu-wrapper { position: relative; }
         .btn-flotante {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
             z-index: 9999;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+            box-shadow: 0 4px 20px rgba(99,102,241,0.5);
             padding: 0.75rem 1.5rem;
             border-radius: 9999px;
             font-size: 1rem;
@@ -165,15 +125,32 @@
                 padding: 0.6rem 1.2rem;
                 font-size: 0.85rem;
             }
-            .btn-flotante span {
-                display: inline;
-            }
+            .btn-flotante span { display: inline; }
+        }
+        /* Tabla */
+        .table-crypto td, .table-crypto th {
+            padding: 0.75rem 0.5rem;
+        }
+        .table-crypto tr {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .table-crypto tr:last-child {
+            border-bottom: none;
+        }
+        .crypto-name {
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .crypto-symbol {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-left: 0.25rem;
         }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
-        <!-- HEADER (sin el botón) -->
+        <!-- HEADER -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
@@ -196,57 +173,36 @@
             </div>
         </div>
 
-        <!-- PRECIO PRINCIPAL -->
-        <div class="glass-card rounded-3xl p-8 mb-8 text-center">
-            <p class="text-slate-400 text-sm uppercase tracking-wider mb-1">Bitcoin / USDT</p>
-            <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">$0.00</div>
-            <div class="flex justify-center items-center gap-4 mt-2 text-sm flex-wrap">
-                <span class="statu-text"><i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span></span>
-                <span class="text-slate-600">|</span>
-                <span class="statu-text"><i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span></span>
-                <span class="text-slate-600">|</span>
-                <span class="statu-text text-emerald-400/70"><i class="fas fa-bolt text-xs mr-1"></i> Cada 10s</span>
-            </div>
-        </div>
-
-        <!-- 3 TARJETAS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="glass-card rounded-2xl p-6">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-indigo-500/20 rounded-lg"><i class="fas fa-bitcoin-sign text-indigo-400 text-xl"></i></div>
-                    <span class="text-slate-400 text-sm font-medium">Precio</span>
-                </div>
-                <div class="text-2xl font-bold text-white" id="btc-precio-detalle">$0.00</div>
-            </div>
-            <div class="glass-card rounded-2xl p-6">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-emerald-500/20 rounded-lg"><i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i></div>
-                    <span class="text-slate-400 text-sm font-medium">Variación (24h)</span>
-                </div>
-                <div class="text-2xl font-bold" id="variacion-valor">0.00%</div>
-            </div>
-            <div class="glass-card rounded-2xl p-6">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-amber-500/20 rounded-lg"><i class="fas fa-wave-square text-amber-400 text-xl"></i></div>
-                    <span class="text-slate-400 text-sm font-medium">RSI (14 días)</span>
-                </div>
-                <div class="text-2xl font-bold text-amber-400" id="rsi-valor">50.00</div>
-            </div>
-        </div>
-
-        <!-- HISTORIAL -->
+        <!-- TABLA DE MONEDAS -->
         <div class="glass-card rounded-3xl p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-history text-indigo-400"></i> Historial Reciente
+                    <i class="fas fa-coins text-emerald-400"></i> Mercado
                 </h2>
-                <span class="text-xs text-slate-500">Últimas 5 actualizaciones</span>
+                <span class="text-xs text-slate-500" id="ultima-actualizacion">Actualizando...</span>
             </div>
-            <div id="historial-lista" class="divide-y divide-slate-700/50"></div>
+            <div class="overflow-x-auto">
+                <table class="table-crypto w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-400 border-b border-slate-700/50">
+                            <th class="font-medium">Moneda</th>
+                            <th class="font-medium text-right">Precio (USD)</th>
+                            <th class="font-medium text-right">Cambio 24h</th>
+                            <th class="font-medium text-right">RSI (14d)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-cuerpo">
+                        <!-- JS llena -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-center text-xs text-slate-500">
+                <span class="inline-flex items-center gap-1"><i class="fas fa-bolt text-emerald-400/70"></i> Actualización cada 10s</span>
+            </div>
         </div>
     </div>
 
-    <!-- BOTÓN FLOTANTE EN ESQUINA INFERIOR DERECHA -->
+    <!-- BOTÓN FLOTANTE -->
     <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
         <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
     </button>
@@ -265,51 +221,42 @@
             }
         });
 
-        // SSE Y ACTUALIZACIÓN DE DATOS
-        const estadoElement = document.getElementById('estado-sistema');
-        let ultimoEstado = 'Conectando...';
-
+        // SSE
         const source = new EventSource('/api/stream');
         source.onmessage = (e) => {
             const data = JSON.parse(e.data);
             const d = data.datos;
-            const precioFormateado = '$' + d.precio_actual.toLocaleString();
+            const tbody = document.getElementById('tabla-cuerpo');
+            const ultima = document.getElementById('ultima-actualizacion');
 
-            document.getElementById('btc-precio').innerText = precioFormateado;
-            document.getElementById('btc-precio-detalle').innerText = precioFormateado;
-            document.getElementById('rsi-valor').innerText = d.rsi.toFixed(2);
-            document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
+            // Tomar la hora de actualización de la primera moneda (BTC)
+            const btc = d['BTCUSDT'] || {};
+            if (btc.ultima_actualizacion) {
+                ultima.innerText = 'Última actualización: ' + btc.ultima_actualizacion;
+            }
 
-            ultimoEstado = d.ultima_actualizacion;
-            estadoElement.innerText = ultimoEstado;
-
-            const varEl = document.getElementById('variacion-valor');
-            const v = d.variacion;
-            const signo = v > 0 ? '+' : '';
-            varEl.innerText = signo + v.toFixed(2) + '%';
-            varEl.className = 'text-2xl font-bold ' + (v > 0 ? 'text-emerald-400' : v < 0 ? 'text-red-400' : 'text-slate-400');
-
-            const lista = document.getElementById('historial-lista');
-            lista.innerHTML = data.historial.map(h => {
-                const estadoClass = h.estado === 'Sobrevendido' ? 'rsi-sobrevendido' :
-                                   h.estado === 'Sobrecomprado' ? 'rsi-sobrecomprado' :
-                                   'rsi-neutral';
-                return `
-                    <div class="historico-item py-3 px-2 flex flex-wrap justify-between items-center text-sm">
-                        <span class="text-slate-400"><i class="far fa-clock mr-1"></i>${h.fecha}</span>
-                        <span class="font-bold text-white">BTC $${h.precio.toLocaleString()}</span>
-                        <span class="${estadoClass} font-semibold text-xs bg-slate-800/50 px-3 py-1 rounded-full">${h.estado}</span>
-                    </div>
+            let html = '';
+            for (const [symbol, info] of Object.entries(d)) {
+                const nombre = info.nombre || symbol;
+                const precio = info.precio_actual || 0;
+                const variacion = info.variacion || 0;
+                const rsi = info.rsi || 50;
+                const colorVar = variacion >= 0 ? 'text-emerald-400' : 'text-red-400';
+                const signo = variacion >= 0 ? '+' : '';
+                html += `
+                    <tr>
+                        <td class="crypto-name">${nombre} <span class="crypto-symbol">${symbol.replace('USDT', '')}</span></td>
+                        <td class="text-right text-white font-medium">$${precio.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="text-right font-semibold ${colorVar}">${signo}${variacion.toFixed(2)}%</td>
+                        <td class="text-right ${rsi < 30 ? 'text-blue-400' : rsi > 70 ? 'text-red-400' : 'text-amber-400'}">${rsi.toFixed(2)}</td>
+                    </tr>
                 `;
-            }).join('');
+            }
+            tbody.innerHTML = html;
         };
 
         source.onerror = (e) => {
-            if (ultimoEstado === 'Conectando...' || ultimoEstado === 'N/A') {
-                estadoElement.innerText = '⚠️ Esperando conexión...';
-            } else {
-                estadoElement.innerText = '🔄 Reconectando... (último dato: ' + ultimoEstado + ')';
-            }
+            console.warn('⚠️ Error en SSE, reintentando...');
         };
 
         // BOTÓN FLOTANTE

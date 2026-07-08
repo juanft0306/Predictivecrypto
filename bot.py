@@ -1,7 +1,7 @@
 from datetime import datetime
 import time
 import requests
-import config  # Importamos nuestro archivo de configuración
+import config  # Importamos la configuración global
 
 
 def enviar_alerta_telegram(mensaje):
@@ -41,52 +41,51 @@ def analizar_mercado():
         precio_actual = precios_cierre[-1]
         ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Determinar estado visual
+        # Configurar etiquetas visuales
         estado_web = "Normal"
         if rsi < 30:
             estado_web = "💡 Sobrevendido"
         elif rsi > 70:
             estado_web = "⚠️ Sobrecomprado"
 
-        # Actualizamos de forma segura el archivo config.py
-        config.datos_mercado = {
-            "precio_actual": precio_actual,
-            "rsi": rsi,
-            "ultima_actualizacion": ahora,
-        }
+        # Mutación directa de los datos en memoria compartida
+        config.datos_mercado["precio_actual"] = precio_actual
+        config.datos_mercado["rsi"] = rsi
+        config.datos_mercado["ultima_actualizacion"] = ahora
 
-        config.historial_analisis.insert(
-            0,
-            {
-                "fecha": ahora,
-                "precio": precio_actual,
-                "rsi": rsi,
-                "estado": estado_web,
-            },
-        )
-        if len(config.historial_analisis) > 10:
-            config.historial_analisis.pop()
+        # Insertar registro en el historial evitando duplicados idénticos seguidos
+        if (
+            not config.historial_analisis
+            or config.historial_analisis[0]["precio"] != precio_actual
+        ):
+            config.historial_analisis.insert(
+                0,
+                {
+                    "fecha": ahora,
+                    "precio": precio_actual,
+                    "rsi": rsi,
+                    "estado": estado_web,
+                },
+            )
+            if len(config.historial_analisis) > 10:
+                config.historial_analisis.pop()
 
-        # Enviar alertas Telegram si el RSI rompe rangos
-        reporte = f"=== ALERTAS CRIPTO ===\nBitcoin: ${precio_actual:,.2f} USD\nRSI: {rsi:.2f}\n--------------------\n"
+        # Envío inteligente de alertas a Telegram
         if rsi < 30:
-            reporte += "💡 SEÑAL: SOBREVENDIDO. ¡Alta probabilidad de SUBIDA!"
+            reporte = f"=== ALERTAS CRIPTO ===\nBitcoin: ${precio_actual:,.2f} USD\nRSI: {rsi:.2f}\n--------------------\n💡 SEÑAL: SOBREVENDIDO. ¡Alta probabilidad de SUBIDA!"
             enviar_alerta_telegram(reporte)
         elif rsi > 70:
-            reporte += "⚠️ SEÑAL: SOBRECOMPRADO. Probabilidad de BAJA."
+            reporte = f"=== ALERTAS CRIPTO ===\nBitcoin: ${precio_actual:,.2f} USD\nRSI: {rsi:.2f}\n--------------------\n⚠️ SEÑAL: SOBRECOMPRADO. Probabilidad de BAJA."
             enviar_alerta_telegram(reporte)
         else:
-            print(f"Mercado analizado de forma segura. RSI estable en {rsi:.2f}.")
+            print(f"Análisis ejecutado de fondo. RSI estable en {rsi:.2f}.")
 
     except Exception as e:
-        # Si Binance falla, el bot no se rompe y Flask sigue vivo
-        print(f"Error controlado en el análisis de mercado (Binance): {e}")
+        print(f"Error controlado en el hilo del Bot (Binance): {e}")
 
 
 def bucle_bot():
-    print("Iniciando bucle de análisis secundario...")
-    analizar_mercado()  # Carga inicial al encender
+    print("Iniciando bucle de análisis secundario (Intervalo: 30s)...")
     while True:
-        time.sleep(14400)  # Revisa cada 4 horas
         analizar_mercado()
-          
+        time.sleep(30)  # Frecuencia de actualización para la app web

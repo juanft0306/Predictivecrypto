@@ -3,13 +3,9 @@ import time
 import requests
 import config
 
-# ============================================================
-#  CONSTANTES
-# ============================================================
 HISTORIAL_MAX = 5
-INTERVALO_ACTUALIZACION = 10   # segundos
+INTERVALO_ACTUALIZACION = 10
 
-# Estados previos para alertas (por moneda)
 ultimo_estado_rsi = {}
 ultima_variacion_alerta = {}
 
@@ -17,13 +13,7 @@ for moneda in config.MONEDAS:
     ultimo_estado_rsi[moneda] = None
     ultima_variacion_alerta[moneda] = False
 
-# ============================================================
-#  FUNCIONES AUXILIARES
-# ============================================================
 def enviar_alerta_telegram(mensaje):
-    """
-    Envía un mensaje a Telegram con formato Markdown.
-    """
     if not config.TOKEN_TELEGRAM or not config.CHAT_ID_TELEGRAM:
         config.logger.warning("Credenciales de Telegram no configuradas.")
         return
@@ -41,10 +31,6 @@ def enviar_alerta_telegram(mensaje):
         config.logger.error(f"Excepción al enviar alerta: {e}")
 
 def obtener_todos_los_tickers():
-    """
-    Obtiene los tickers de 24h de Binance y filtra solo los pares que nos interesan.
-    Retorna un dict: { "BTCUSDT": { "lastPrice": 62000, "priceChangePercent": -2.64 }, ... }
-    """
     url = "https://api.binance.us/api/v3/ticker/24hr"
     try:
         resp = requests.get(url, timeout=5)
@@ -66,10 +52,6 @@ def obtener_todos_los_tickers():
     return None
 
 def obtener_velas(symbol):
-    """
-    Obtiene velas diarias para una moneda específica (para calcular RSI).
-    Retorna lista de precios de cierre o None.
-    """
     endpoints = [
         f"https://api.binance.us/api/v3/klines?symbol={symbol}&interval=1d&limit=15",
         f"https://api.mexc.com/api/v3/klines?symbol={symbol}&interval=1d&limit=15"
@@ -80,7 +62,7 @@ def obtener_velas(symbol):
             if resp.status_code == 200:
                 datos = resp.json()
                 if len(datos) >= 2:
-                    return [float(dia[4]) for dia in datos]  # precio de cierre
+                    return [float(dia[4]) for dia in datos]
                 else:
                     config.logger.warning(f"{url} devolvió solo {len(datos)} velas.")
             else:
@@ -90,10 +72,6 @@ def obtener_velas(symbol):
     return None
 
 def calcular_rsi(precios):
-    """
-    Calcula RSI (14 periodos) a partir de una lista de precios de cierre.
-    Retorna valor RSI o 50.0 si no hay suficientes datos.
-    """
     if not precios or len(precios) < 15:
         return 50.0
     cambios = [precios[i] - precios[i-1] for i in range(1, len(precios))]
@@ -109,13 +87,8 @@ def calcular_rsi(precios):
     return 100 - (100 / (1 + rs))
 
 def analizar_mercado():
-    """
-    Obtiene datos de todas las monedas, calcula RSI para cada una,
-    actualiza estados y dispara alertas automáticas.
-    """
     global ultimo_estado_rsi, ultima_variacion_alerta
 
-    # 1. Obtener todos los tickers de 24h
     tickers = obtener_todos_los_tickers()
     if not tickers:
         config.logger.error("No se obtuvieron tickers de Binance.")
@@ -124,7 +97,6 @@ def analizar_mercado():
     ahora_ve = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
     hora_utc = datetime.utcnow().strftime("%H:%M:%S UTC")
 
-    # 2. Procesar cada moneda
     for symbol in config.MONEDAS:
         if symbol not in tickers:
             config.logger.warning(f"No hay datos para {symbol}, se salta.")
@@ -134,11 +106,9 @@ def analizar_mercado():
         precio = ticker["lastPrice"]
         variacion = ticker["priceChangePercent"]
 
-        # Obtener velas para RSI
         precios = obtener_velas(symbol)
         rsi = calcular_rsi(precios) if precios else 50.0
 
-        # Actualizar datos de mercado
         config.datos_mercado[symbol].update({
             "precio_actual": precio,
             "variacion": variacion,
@@ -147,23 +117,18 @@ def analizar_mercado():
             "hora_venezuela": ahora_ve
         })
 
-        # ============================================================
-        #  LÓGICA DE INVERSIÓN (NUEVA)
-        # ============================================================
+        # --- LÓGICA DE INVERSIÓN ---
         inv = config.inversiones.get(symbol, {})
         cantidad = inv.get("cantidad", 0)
-        capital = inv.get("capital_invertido", 0)
+        capital = inv.get("capital_invertido", 0)      # Ahora es el real, ingresado por el usuario
         ganancia_deseada = inv.get("ganancia_deseada", 0)
 
         if cantidad > 0 and capital > 0 and ganancia_deseada > 0:
-            # Calcular automáticamente
+            valor_actual = cantidad * precio
             monto_total_deseado = capital + ganancia_deseada
             precio_objetivo = monto_total_deseado / cantidad
-
-            valor_actual = cantidad * precio
             ganancia_actual = ((valor_actual - capital) / capital) * 100
 
-            # Actualizar datos de mercado para mostrar en la página
             config.datos_mercado[symbol].update({
                 "capital_invertido": capital,
                 "ganancia_deseada": ganancia_deseada,
@@ -173,16 +138,16 @@ def analizar_mercado():
                 "ganancia_actual": ganancia_actual
             })
 
-            # Comparar con el monto total deseado
+            # Alerta de meta alcanzada
             if valor_actual >= monto_total_deseado and not inv.get("alcanzado", False):
                 nombre_completo = config.NOMBRES_MONEDAS.get(symbol, symbol)
                 abreviatura = symbol.replace('USDT', '')
                 tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
                 mensaje = (
                     f"🎯 *¡META ALCANZADA en {nombre_completo} ({abreviatura})!*\n"
-                    f"💰 Invertiste: ${capital:,.2f}\n"
-                    f"🎯 Querías ganar: ${ganancia_deseada:,.2f}\n"
-                    f"💵 Tu inversión ahora vale: ${valor_actual:,.2f}\n"
+                    f"💰 Capital invertido: ${capital:,.2f}\n"
+                    f"🎯 Ganancia deseada: ${ganancia_deseada:,.2f}\n"
+                    f"💵 Valor actual: ${valor_actual:,.2f}\n"
                     f"📈 Ganancia real: {ganancia_actual:+.2f}%\n"
                     f"📊 Precio actual: ${precio:,.2f}\n"
                     f"📉 Tendencia: {tendencia}\n"
@@ -191,12 +156,11 @@ def analizar_mercado():
                 enviar_alerta_telegram(mensaje)
                 config.inversiones[symbol]["alcanzado"] = True
 
-        # --- ALERTAS AUTOMÁTICAS (variación y RSI) ---
+        # --- ALERTAS DE VARIACIÓN Y RSI ---
         nombre_completo = config.NOMBRES_MONEDAS.get(symbol, symbol)
         abreviatura = symbol.replace('USDT', '')
         tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
 
-        # 2.1 Alerta de variación brusca
         if abs(variacion) >= config.VARIACION_ALERTA and not ultima_variacion_alerta[symbol]:
             signo = "+" if variacion > 0 else ""
             mensaje = (
@@ -210,7 +174,6 @@ def analizar_mercado():
         elif abs(variacion) < config.VARIACION_ALERTA:
             ultima_variacion_alerta[symbol] = False
 
-        # 2.2 Alerta de RSI
         estado_rsi = "Neutral"
         if rsi < config.RSI_SOBREVENTA:
             estado_rsi = "Sobrevendido"
@@ -231,7 +194,7 @@ def analizar_mercado():
         elif estado_rsi == "Neutral":
             ultimo_estado_rsi[symbol] = None
 
-    # 3. Actualizar historial solo para la moneda seleccionada en inversión
+    # Historial para la moneda seleccionada
     moneda_sel = config.moneda_seleccionada
     if moneda_sel in config.datos_mercado:
         precio_sel = config.datos_mercado[moneda_sel]["precio_actual"]
@@ -252,16 +215,10 @@ def analizar_mercado():
             if len(config.historial_analisis) > HISTORIAL_MAX:
                 config.historial_analisis.pop()
 
-    # 4. Disparar evento SSE
     config.actualizacion_event.set()
-
     config.logger.info(f"Datos actualizados para {len(config.MONEDAS)} monedas.")
 
 def enviar_alerta_manual():
-    """
-    Envía un resumen completo de todas las monedas y las inversiones activas
-    por Telegram (llamada desde el botón "Enviar alerta").
-    """
     ahora_ve = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
     mensaje = f"📊 *Resumen CryptoAlert*\n🕒 Última actualización: {ahora_ve}\n\n"
 
@@ -275,7 +232,6 @@ def enviar_alerta_manual():
         tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
         mensaje += f"• *{nombre} ({abrev})*: ${precio:,.2f}  ({variacion:+.2f}%)  {tendencia}  RSI: {rsi:.2f}\n"
 
-    # Añadir inversiones activas
     inversiones_activas = False
     for symbol, inv in config.inversiones.items():
         if inv["cantidad"] > 0 and inv["capital_invertido"] > 0 and inv["ganancia_deseada"] > 0:
@@ -298,9 +254,6 @@ def enviar_alerta_manual():
     config.logger.info("Alerta manual enviada.")
 
 def bucle_bot():
-    """
-    Bucle principal que ejecuta el análisis cada INTERVALO_ACTUALIZACION segundos.
-    """
     config.logger.info("🤖 Bot de análisis multi-moneda iniciado.")
     while True:
         try:

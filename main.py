@@ -6,7 +6,6 @@ import config
 
 app = Flask(__name__)
 
-# Esta es la "puerta trasera" que usará tu teléfono para pedir datos cada 30s
 @app.route("/api/data")
 def api_data():
     return jsonify({
@@ -64,26 +63,22 @@ def home():
         </div>
 
         <script>
-            // FUNCIÓN MÁGICA: Pide datos al servidor sin refrescar la página
             async function actualizarDashboard() {
                 try {
                     const respuesta = await fetch('/api/data');
                     const resultado = await respuesta.json();
                     
-                    const datos = resultado.datos;
+                    const datos = network_clean(resultado.datos);
                     const historial = resultado.historial;
 
-                    // 1. Actualizar Precio con formato moneda
                     if (datos.precio_actual > 0) {
                         const formatoMoneda = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
                         document.getElementById('btc-precio').innerText = formatoMoneda.format(datos.precio_actual) + " USD";
                     }
                     
-                    // 2. Actualizar RSI y tiempo
                     document.getElementById('rsi-valor').innerText = datos.rsi.toFixed(2);
                     document.getElementById('actualizacion-tiempo').innerText = datos.ultima_actualizacion;
 
-                    // 3. Cambiar colores según RSI (Sobrecompra/Venta)
                     const rsiVal = datos.rsi;
                     const rsiBadge = document.getElementById('rsi-badge');
                     const rsiTexto = document.getElementById('rsi-valor');
@@ -102,7 +97,6 @@ def home():
                         rsiBadge.innerText = "NEUTRO";
                     }
 
-                    // 4. Actualizar la lista del historial sin parpadeos
                     const listaHistorial = document.getElementById('historial-lista');
                     if (historial.length > 0) {
                         let htmlContenido = "";
@@ -129,11 +123,18 @@ def home():
                 }
             }
 
-            // Iniciar al cargar
+            function network_clean(d) {
+                return {
+                    precio_actual: d.precio_actual || 0,
+                    rsi: d.rsi || 50.0,
+                    ultima_actualizacion: d.ultima_actualizacion || "Sincronizando..."
+                };
+            }
+
             actualizarDashboard();
             
-            // REPETIR CADA 30 SEGUNDOS (30000 milisegundos)
-            setInterval(actualizarDashboard, 30000);
+            // CAMBIO: Pide datos nuevos de manera automática cada 10 segundos (10000ms)
+            setInterval(actualizarDashboard, 10000);
         </script>
     </body>
     </html>
@@ -147,3 +148,4 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+    

@@ -6,9 +6,9 @@ import config
 
 app = Flask(__name__)
 
+# Esta es la "puerta trasera" que usará tu teléfono para pedir datos cada 30s
 @app.route("/api/data")
 def api_data():
-    # Convertimos a lista explícita para evitar colisiones de hilos al leer la memoria
     return jsonify({
         "datos": config.datos_mercado,
         "historial": list(config.historial_analisis)
@@ -44,26 +44,27 @@ def home():
                     <p class="text-sm text-slate-400 uppercase tracking-wider font-semibold">RSI Actual (14 Días)</p>
                     <div class="flex items-center justify-between mt-2">
                         <p id="rsi-valor" class="text-4xl font-black text-amber-400">--.--</p>
-                        <span id="rsi-badge" class="text-xs px-2 py-1 rounded font-bold bg-amber-500/20 text-amber-400">
-                            ESPERANDO
-                        </span>
+                        <span id="rsi-badge" class="text-xs px-2 py-1 rounded font-bold bg-amber-500/20 text-amber-400">ESPERANDO</span>
                     </div>
                 </div>
             </div>
 
-            <p class="text-xs text-slate-500 mb-8 text-right">Estado del sistema: <span id="actualizacion-tiempo" class="text-slate-300 font-medium">N/A</span></p>
+            <p class="text-xs text-slate-500 mb-8 text-right tracking-tight">
+                Estado del sistema: <span id="actualizacion-tiempo" class="text-slate-300 font-medium">Sincronizando...</span>
+            </p>
 
             <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-700">
                     <h2 class="text-xl font-bold text-slate-200">📋 Historial Reciente de Análisis</h2>
                 </div>
                 <div id="historial-lista" class="divide-y divide-slate-700 max-h-96 overflow-y-auto">
-                    <p class="p-6 text-slate-400 text-center">Esperando datos del backend...</p>
+                    <p class="p-6 text-slate-400 text-center italic">Conectando con el bot de trading...</p>
                 </div>
             </div>
         </div>
 
         <script>
+            // FUNCIÓN MÁGICA: Pide datos al servidor sin refrescar la página
             async function actualizarDashboard() {
                 try {
                     const respuesta = await fetch('/api/data');
@@ -72,16 +73,17 @@ def home():
                     const datos = resultado.datos;
                     const historial = resultado.historial;
 
+                    // 1. Actualizar Precio con formato moneda
                     if (datos.precio_actual > 0) {
-                        const precioFormateado = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(datos.precio_actual);
-                        document.getElementById('btc-precio').innerText = precioFormateado + " USD";
-                    } else {
-                        document.getElementById('btc-precio').innerText = "$0.00 USD";
+                        const formatoMoneda = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+                        document.getElementById('btc-precio').innerText = formatoMoneda.format(datos.precio_actual) + " USD";
                     }
                     
+                    // 2. Actualizar RSI y tiempo
                     document.getElementById('rsi-valor').innerText = datos.rsi.toFixed(2);
                     document.getElementById('actualizacion-tiempo').innerText = datos.ultima_actualizacion;
 
+                    // 3. Cambiar colores según RSI (Sobrecompra/Venta)
                     const rsiVal = datos.rsi;
                     const rsiBadge = document.getElementById('rsi-badge');
                     const rsiTexto = document.getElementById('rsi-valor');
@@ -100,10 +102,9 @@ def home():
                         rsiBadge.innerText = "NEUTRO";
                     }
 
+                    // 4. Actualizar la lista del historial sin parpadeos
                     const listaHistorial = document.getElementById('historial-lista');
-                    if (historial.length === 0) {
-                        listaHistorial.innerHTML = '<p class="p-6 text-slate-400 text-center">Esperando el primer análisis del mercado...</p>';
-                    } else {
+                    if (historial.length > 0) {
                         let htmlContenido = "";
                         historial.forEach(reg => {
                             const pReg = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(reg.precio);
@@ -112,24 +113,27 @@ def home():
                             htmlContenido += `
                             <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-slate-750 transition-colors">
                                 <div class="mb-2 sm:mb-0">
-                                    <span class="text-xs text-slate-400 block font-mono">${reg.fecha}</span>
-                                    <span class="font-semibold text-slate-200">BTC: ${pReg} USD</span>
+                                    <span class="text-xs text-slate-400 block font-mono font-bold">${reg.fecha}</span>
+                                    <span class="font-bold text-slate-200">BTC: ${pReg} USD</span>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <span class="font-mono text-sm">RSI: <strong class="${colorRsi}">${reg.rsi.toFixed(2)}</strong></span>
-                                    <span class="text-sm font-medium text-slate-300">${reg.estado}</span>
+                                    <span class="text-sm font-medium text-slate-400">${reg.estado}</span>
                                 </div>
                             </div>`;
                         });
                         listaHistorial.innerHTML = htmlContenido;
                     }
                 } catch (error) {
-                    console.error("Error al actualizar la interfaz:", error);
+                    console.error("Error de sincronización:", error);
                 }
             }
 
+            // Iniciar al cargar
             actualizarDashboard();
-            setInterval(actualizarDashboard, 30000); // Sincronización estricta cada 30s
+            
+            // REPETIR CADA 30 SEGUNDOS (30000 milisegundos)
+            setInterval(actualizarDashboard, 30000);
         </script>
     </body>
     </html>
@@ -143,4 +147,3 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-    

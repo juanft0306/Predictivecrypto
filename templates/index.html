@@ -120,13 +120,17 @@
             <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">
                 $0.00
             </div>
-            <div class="flex justify-center items-center gap-4 mt-2 text-sm">
+            <div class="flex justify-center items-center gap-4 mt-2 text-sm flex-wrap">
                 <span class="statu-text">
                     <i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span>
                 </span>
                 <span class="text-slate-600">|</span>
                 <span class="statu-text">
                     <i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span>
+                </span>
+                <span class="text-slate-600">|</span>
+                <span class="statu-text text-emerald-400/70">
+                    <i class="fas fa-bolt text-xs mr-1"></i> Cada 10s
                 </span>
             </div>
         </div>
@@ -231,14 +235,12 @@
 
         // Manejo de errores: mostrar "Reconectando..." pero no borrar el estado previo
         source.onerror = (e) => {
-            // Solo cambiamos el texto si realmente no ha llegado ningún dato aún
             if (ultimoEstado === 'Conectando...' || ultimoEstado === 'N/A') {
                 estadoElement.innerText = '⚠️ Esperando conexión...';
             } else {
                 estadoElement.innerText = '🔄 Reconectando... (último dato: ' + ultimoEstado + ')';
             }
             // NO cerramos la conexión manualmente; el navegador ya lo intenta de nuevo automáticamente.
-            // Dejamos que el EventSource maneje la reconexión por sí solo.
         };
 
         // ==========================================================

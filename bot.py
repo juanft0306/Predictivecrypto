@@ -7,7 +7,7 @@ def enviar_alerta_telegram(mensaje):
     url = f"https://api.telegram.org/bot{config.TOKEN_TELEGRAM}/sendMessage"
     payload = {"chat_id": config.CHAT_ID_TELEGRAM, "text": mensaje}
     try:
-        requests.post(url, json=payload, timeout=10)
+        requests.post(url, json=payload, timeout=5)
     except Exception as e:
         print("❌ Error al enviar a Telegram:", e, flush=True)
 
@@ -23,9 +23,9 @@ def analizar_mercado():
     for url in endpoints:
         try:
             url_completa = f"{url}?symbol=BTCUSDT&interval=1d&limit=15"
-            respuesta = requests.get(url_completa, timeout=8)
+            # MEJORA 1: Reducimos el timeout a 2.5s para no congelar el bucle si la red está lenta
+            respuesta = requests.get(url_completa, timeout=2.5)
             if respuesta.status_code == 200:
-                print(f"✅ Conectado exitosamente a: {url}", flush=True)
                 break
             else:
                 ultimo_error = f"HTTP {respuesta.status_code} ({url.split('//')[1].split('/')[0]})"
@@ -94,9 +94,21 @@ def analizar_mercado():
         print(f"❌ Error procesando los datos: {e}", flush=True)
 
 def bucle_bot():
-    # CAMBIO: Ahora ejecuta el ciclo cada 10 segundos
-    print("🤖 Iniciando bucle de análisis secundario (Frecuencia: 10s)...", flush=True)
+    print("🤖 Iniciando bucle de análisis secundario (Frecuencia estricta: 10s)...", flush=True)
     while True:
+        # MEJORA 2: Tomamos una captura del tiempo exacto antes de empezar
+        tiempo_inicio = time.time()
+        
         analizar_mercado()
-        time.sleep(10)
-                                 
+        
+        # Calculamos cuánto tiempo tomó la ejecución del código y la red
+        tiempo_transcurrido = time.time() - tiempo_inicio
+        
+        # El tiempo de espera será lo que falte para llegar a los 10 segundos
+        tiempo_espera = 10 - tiempo_transcurrido
+        
+        # Control de seguridad: si la red tardó más de 10s, esperamos al menos 1s para no saturar
+        if tiempo_espera < 1:
+            tiempo_espera = 1
+            
+        time.sleep(tiempo_espera)

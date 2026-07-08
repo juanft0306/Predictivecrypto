@@ -43,22 +43,15 @@ def actualizar_inversion():
         data = request.get_json()
         symbol = data.get('symbol', config.moneda_seleccionada)
         cantidad = float(data.get('cantidad', 0))
+        capital_invertido = float(data.get('capital_invertido', 0))
         ganancia_deseada = float(data.get('ganancia_deseada', 0))
         
         if symbol not in config.inversiones:
             return jsonify({"status": "error", "mensaje": "Moneda no válida"}), 400
-        if cantidad <= 0 or ganancia_deseada <= 0:
-            return jsonify({"status": "error", "mensaje": "Los valores deben ser mayores a 0"}), 400
+        if cantidad <= 0 or capital_invertido <= 0 or ganancia_deseada <= 0:
+            return jsonify({"status": "error", "mensaje": "Todos los valores deben ser mayores a 0"}), 400
         
-        # Obtener precio actual de la moneda
-        precio_actual = config.datos_mercado.get(symbol, {}).get("precio_actual", 0)
-        if precio_actual == 0:
-            return jsonify({"status": "error", "mensaje": "No hay datos de precio para esta moneda"}), 400
-        
-        # Calcular capital invertido automáticamente
-        capital_invertido = cantidad * precio_actual
-        
-        # Guardar datos
+        # Guardar datos (el capital invertido ahora lo ingresa el usuario)
         config.inversiones[symbol]["cantidad"] = cantidad
         config.inversiones[symbol]["capital_invertido"] = capital_invertido
         config.inversiones[symbol]["ganancia_deseada"] = ganancia_deseada
@@ -85,7 +78,6 @@ def cambiar_moneda():
         if symbol not in config.MONEDAS:
             return jsonify({"status": "error", "mensaje": "Moneda no válida"}), 400
         config.moneda_seleccionada = symbol
-        # Resetear historial para la nueva moneda
         config.historial_analisis.clear()
         config.actualizacion_event.set()
         return jsonify({"status": "ok", "mensaje": f"Moneda cambiada a {symbol}"})

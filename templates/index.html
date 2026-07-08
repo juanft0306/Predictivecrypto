@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* ============================================================
+           ESTILOS BASE
+           ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
         * { font-family: 'Inter', sans-serif; }
         body {
@@ -28,6 +31,13 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.6);
             border-color: rgba(99,102,241,0.3);
         }
+        .price-glow { text-shadow: 0 0 40px rgba(52,211,153,0.2); }
+        .badge-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
         .btn-gradient {
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             transition: all 0.3s ease;
@@ -37,12 +47,18 @@
             box-shadow: 0 0 30px rgba(99,102,241,0.4);
         }
         .btn-gradient:active { transform: scale(0.98); }
-        .badge-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
+        .historico-item {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
         }
+        .historico-item:hover {
+            background: rgba(99,102,241,0.05);
+            border-left-color: #6366f1;
+            padding-left: 0.5rem;
+        }
+        .rsi-neutral { color: #fbbf24; }
+        .rsi-sobrevendido { color: #60a5fa; }
+        .rsi-sobrecomprado { color: #f87171; }
         .estado-badge {
             background: rgba(99,102,241,0.15);
             border: 1px solid rgba(99,102,241,0.2);
@@ -127,154 +143,32 @@
             }
             .btn-flotante span { display: inline; }
         }
-        /* Tabla */
+        select {
+            background-color: #1e293b;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        select:focus { border-color: #6366f1; }
+        .moneda-badge {
+            display: inline-block;
+            background: rgba(99,102,241,0.15);
+            padding: 0.15rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            color: #a5b4fc;
+        }
         .table-crypto td, .table-crypto th {
-            padding: 0.75rem 0.5rem;
+            padding: 0.5rem 0.3rem;
         }
         .table-crypto tr {
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .table-crypto tr:last-child {
-            border-bottom: none;
-        }
-        .crypto-name {
-            font-weight: 600;
-            color: #f1f5f9;
-        }
-        .crypto-symbol {
-            font-size: 0.7rem;
-            color: #64748b;
-            margin-left: 0.25rem;
-        }
+        .table-crypto tr:last-child { border-bottom: none; }
+        .crypto-name { font-weight: 600; color: #f1f5f9; }
+        .crypto-symbol { font-size: 0.65rem; color: #64748b; margin-left: 0.2rem; }
     </style>
 </head>
-<body>
-    <div class="max-w-6xl mx-auto">
-        <!-- HEADER -->
-        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <div class="flex items-center gap-4">
-                <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                    <i class="fas fa-chart-line text-indigo-400 mr-2"></i>CryptoAlert
-                </h1>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="menu-wrapper">
-                    <div class="menu-toggle" id="menuToggle">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <div class="menu-dropdown" id="menuDropdown">
-                        <a href="/" class="active">Dashboard</a>
-                        <a href="/inversion">Mi Inversión</a>
-                    </div>
-                </div>
-                <span class="estado-badge hidden sm:inline-block">
-                    <i class="fas fa-circle text-emerald-400 text-xs mr-1"></i> Conectado
-                </span>
-            </div>
-        </div>
-
-        <!-- TABLA DE MONEDAS -->
-        <div class="glass-card rounded-3xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-coins text-emerald-400"></i> Mercado
-                </h2>
-                <span class="text-xs text-slate-500" id="ultima-actualizacion">Actualizando...</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="table-crypto w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-slate-400 border-b border-slate-700/50">
-                            <th class="font-medium">Moneda</th>
-                            <th class="font-medium text-right">Precio (USD)</th>
-                            <th class="font-medium text-right">Cambio 24h</th>
-                            <th class="font-medium text-right">RSI (14d)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-cuerpo">
-                        <!-- JS llena -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-4 text-center text-xs text-slate-500">
-                <span class="inline-flex items-center gap-1"><i class="fas fa-bolt text-emerald-400/70"></i> Actualización cada 10s</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- BOTÓN FLOTANTE -->
-    <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
-        <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
-    </button>
-
-    <script>
-        // MENÚ HAMBURGUESA
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.getElementById('menuDropdown').classList.toggle('open');
-        });
-        document.addEventListener('click', function(e) {
-            const wrapper = document.querySelector('.menu-wrapper');
-            if (!wrapper.contains(e.target)) {
-                document.getElementById('menuToggle').classList.remove('active');
-                document.getElementById('menuDropdown').classList.remove('open');
-            }
-        });
-
-        // SSE
-        const source = new EventSource('/api/stream');
-        source.onmessage = (e) => {
-            const data = JSON.parse(e.data);
-            const d = data.datos;
-            const tbody = document.getElementById('tabla-cuerpo');
-            const ultima = document.getElementById('ultima-actualizacion');
-
-            // Tomar la hora de actualización de la primera moneda (BTC)
-            const btc = d['BTCUSDT'] || {};
-            if (btc.ultima_actualizacion) {
-                ultima.innerText = 'Última actualización: ' + btc.ultima_actualizacion;
-            }
-
-            let html = '';
-            for (const [symbol, info] of Object.entries(d)) {
-                const nombre = info.nombre || symbol;
-                const precio = info.precio_actual || 0;
-                const variacion = info.variacion || 0;
-                const rsi = info.rsi || 50;
-                const colorVar = variacion >= 0 ? 'text-emerald-400' : 'text-red-400';
-                const signo = variacion >= 0 ? '+' : '';
-                html += `
-                    <tr>
-                        <td class="crypto-name">${nombre} <span class="crypto-symbol">${symbol.replace('USDT', '')}</span></td>
-                        <td class="text-right text-white font-medium">$${precio.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        <td class="text-right font-semibold ${colorVar}">${signo}${variacion.toFixed(2)}%</td>
-                        <td class="text-right ${rsi < 30 ? 'text-blue-400' : rsi > 70 ? 'text-red-400' : 'text-amber-400'}">${rsi.toFixed(2)}</td>
-                    </tr>
-                `;
-            }
-            tbody.innerHTML = html;
-        };
-
-        source.onerror = (e) => {
-            console.warn('⚠️ Error en SSE, reintentando...');
-        };
-
-        // BOTÓN FLOTANTE
-        document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
-            const original = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            try {
-                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
-                const data = await resp.json();
-                alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
-            } catch (err) {
-                alert('❌ Error al enviar la alerta');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = original;
-            }
-        });
-    </script>
-</body>
-</html>

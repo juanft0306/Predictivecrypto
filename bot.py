@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import requests
 import config
@@ -30,10 +30,16 @@ def analizar_mercado():
                 ultimo_error = f"HTTP {respuesta.status_code} ({url.split('//')[1].split('/')[0]})"
         except Exception as e:
             ultimo_error = str(e)
+            
+    # CÁLCULO DE ZONA HORARIA
+    ahora_utc = datetime.utcnow()
+    ahora_ve = ahora_utc - timedelta(hours=4) # Restamos 4 horas para la hora de Venezuela
+    str_utc = ahora_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+    str_ve = ahora_ve.strftime("%Y-%m-%d %I:%M:%S %p")
     
     if not respuesta or respuesta.status_code != 200:
-        ahora = datetime.now().strftime("%H:%M:%S")
-        config.datos_mercado["ultima_actualizacion"] = f"❌ Error API: {ultimo_error} ({ahora})"
+        config.datos_mercado["ultima_actualizacion"] = f"❌ Error API: {ultimo_error} ({ahora_utc.strftime('%H:%M:%S')} UTC)"
+        config.datos_mercado["hora_venezuela"] = str_ve
         print(f"❌ Fallaron los servidores. Motivo: {ultimo_error}", flush=True)
         return
 
@@ -56,7 +62,6 @@ def analizar_mercado():
 
         rsi = 100 if promedio_perdidas == 0 else 100 - (100 / (1 + (promedio_ganancias / promedio_perdidas)))
         precio_actual = precios_cierre[-1]
-        ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         estado_web = "Normal"
         if rsi < 30:
@@ -64,13 +69,16 @@ def analizar_mercado():
         elif rsi > 70:
             estado_web = "⚠️ Sobrecomprado"
 
+        # Actualizamos la memoria con ambos relojes
         config.datos_mercado["precio_actual"] = precio_actual
         config.datos_mercado["rsi"] = rsi
-        config.datos_mercado["ultima_actualizacion"] = ahora
+        config.datos_mercado["ultima_actualizacion"] = str_utc
+        config.datos_mercado["hora_venezuela"] = str_ve
 
+        # Ahora el historial se guarda con la hora de tu país
         if not config.historial_analisis or config.historial_analisis[0]["precio"] != precio_actual:
             config.historial_analisis.insert(0, {
-                "fecha": ahora,
+                "fecha": str_ve,
                 "precio": precio_actual,
                 "rsi": rsi,
                 "estado": estado_web
@@ -78,7 +86,7 @@ def analizar_mercado():
             if len(config.historial_analisis) > 10:
                 config.historial_analisis.pop()
 
-        print(f"⚡ Tiempo Real -> BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
+        print(f"⚡ Tiempo Real -> BTC: ${precio_actual} | RSI: {rsi:.2f} | Hora VE: {str_ve}", flush=True)
 
         if rsi < 30:
             reporte = f"=== ALERTAS CRIPTO ===\nBitcoin: ${precio_actual:,.2f} USD\nRSI: {rsi:.2f}\n--------------------\n💡 SEÑAL: SOBREVENDIDO."
@@ -88,12 +96,13 @@ def analizar_mercado():
             enviar_alerta_telegram(reporte)
 
     except Exception as e:
-        ahora = datetime.now().strftime("%H:%M:%S")
-        config.datos_mercado["ultima_actualizacion"] = f"❌ Error procesando JSON ({ahora})"
+        config.datos_mercado["ultima_actualizacion"] = f"❌ Error procesando JSON ({ahora_utc.strftime('%H:%M:%S')} UTC)"
+        config.datos_mercado["hora_venezuela"] = str_ve
         print(f"❌ Error procesando los datos: {e}", flush=True)
 
 def bucle_bot():
     print("🤖 Iniciando motor de análisis en TIEMPO REAL...", flush=True)
     while True:
         analizar_mercado()
-        time.sleep(3) # Pausa de 3s requerida por los Exchanges para no bloquear la IP
+        time.sleep(3)
+        

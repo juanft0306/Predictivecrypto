@@ -8,13 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ============================================================
-           ESTILOS (Mantengo el mismo diseño)
-           ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        * {
-            font-family: 'Inter', sans-serif;
-        }
+        * { font-family: 'Inter', sans-serif; }
         body {
             background: radial-gradient(ellipse at top, #0f172a, #020617);
             min-height: 100vh;
@@ -24,14 +19,14 @@
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             transition: all 0.3s ease;
         }
         .glass-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            border-color: rgba(99,102,241,0.3);
         }
         .btn-gradient {
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -39,37 +34,26 @@
         }
         .btn-gradient:hover {
             transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 30px rgba(99,102,241,0.4);
         }
-        .btn-gradient:active {
-            transform: scale(0.98);
-        }
-        .badge-pulse {
-            animation: pulse 2s infinite;
-        }
+        .btn-gradient:active { transform: scale(0.98); }
+        .badge-pulse { animation: pulse 2s infinite; }
         @keyframes pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
             100% { opacity: 0.7; }
         }
-        .statu-text {
-            color: #94a3b8;
-            font-size: 0.75rem;
-        }
+        .statu-text { color: #94a3b8; font-size: 0.75rem; }
         .nav-link {
             color: #94a3b8;
             transition: color 0.2s;
         }
-        .nav-link:hover {
-            color: #a5b4fc;
-        }
+        .nav-link:hover { color: #a5b4fc; }
         .nav-link.active {
             color: #818cf8;
             border-bottom: 2px solid #818cf8;
         }
-        input[type="number"]::-webkit-inner-spin-button {
-            opacity: 0.5;
-        }
+        input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
         .progress-bar {
             height: 8px;
             background: #1e293b;
@@ -81,30 +65,93 @@
             border-radius: 9999px;
             transition: width 0.5s ease;
         }
+        /* Menú hamburguesa */
+        .menu-toggle {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #94a3b8;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+        }
+        .menu-toggle:hover span { background: #a5b4fc; }
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(4px, 4px);
+        }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(4px, -4px);
+        }
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30,41,59,0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            padding: 0.5rem 0;
+            min-width: 150px;
+            z-index: 50;
+        }
+        .menu-dropdown.open { display: block; }
+        .menu-dropdown a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .menu-dropdown a:hover {
+            background: rgba(99,102,241,0.1);
+            color: #a5b4fc;
+        }
+        .menu-dropdown a.active {
+            color: #818cf8;
+            font-weight: 600;
+        }
+        .menu-wrapper { position: relative; }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
 
-        <!-- NAVEGACIÓN -->
+        <!-- HEADER / NAVEGACIÓN CON HAMBURGUESA -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <h1 class="text-2xl font-bold text-white flex items-center gap-2">
                     <i class="fas fa-chart-line text-indigo-400"></i> CryptoAlert
                 </h1>
-                <span class="text-slate-500">|</span>
-                <div class="flex gap-4 text-sm">
-                    <a href="/" class="nav-link">Dashboard</a>
-                    <a href="/inversion" class="nav-link active">Mi Inversión</a>
-                </div>
             </div>
             <div class="flex items-center gap-3">
+                <!-- Menú hamburguesa -->
+                <div class="menu-wrapper">
+                    <div class="menu-toggle" id="menuToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="menu-dropdown" id="menuDropdown">
+                        <a href="/">Dashboard</a>
+                        <a href="/inversion" class="active">Mi Inversión</a>
+                    </div>
+                </div>
                 <span class="flex items-center gap-2 text-xs text-slate-400">
                     <span class="inline-block w-2 h-2 bg-emerald-400 rounded-full badge-pulse"></span>
-                    <span id="estado-conexion">Conectado</span>
+                    <span id="estado-conexion" class="hidden sm:inline">Conectado</span>
                 </span>
                 <button id="btn-alerta" class="btn-gradient text-white font-bold py-2 px-4 rounded-xl text-xs shadow-lg flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i> Enviar alerta
+                    <i class="fas fa-paper-plane"></i> <span class="hidden sm:inline">Enviar alerta</span>
                 </button>
             </div>
         </div>
@@ -117,7 +164,7 @@
             <p class="text-slate-400 text-sm mt-1">Monitorea el rendimiento de tu posición en BTC en tiempo real</p>
         </div>
 
-        <!-- RESUMEN (4 tarjetas) -->
+        <!-- RESUMEN -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div class="glass-card rounded-2xl p-5">
                 <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
@@ -227,9 +274,7 @@
                             <th class="py-2 px-3 font-medium text-right">Valor Inversión</th>
                         </tr>
                     </thead>
-                    <tbody id="historial-detallado" class="divide-y divide-slate-700/30">
-                        <!-- JS llena esto -->
-                    </tbody>
+                    <tbody id="historial-detallado" class="divide-y divide-slate-700/30"></tbody>
                 </table>
             </div>
         </div>
@@ -237,8 +282,22 @@
     </div>
 
     <!-- ============================================================
-         CARGA DEL SCRIPT EXTERNO (SEPARADO)
+         CARGA DEL SCRIPT EXTERNO
          ============================================================ -->
     <script src="{{ url_for('static', filename='inversion.js') }}"></script>
+    <script>
+        // También añadimos el menú hamburguesa aquí (por si el script externo no lo incluye)
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('menuDropdown').classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.menu-wrapper');
+            if (!wrapper.contains(e.target)) {
+                document.getElementById('menuToggle').classList.remove('active');
+                document.getElementById('menuDropdown').classList.remove('open');
+            }
+        });
+    </script>
 </body>
 </html>

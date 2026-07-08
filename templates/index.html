@@ -148,13 +148,13 @@
                 <div class="text-2xl font-bold text-white" id="btc-precio-detalle">$0.00</div>
             </div>
 
-            <!-- Variación -->
+            <!-- Variación (24h) - ETIQUETA ACTUALIZADA -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="p-2 bg-emerald-500/20 rounded-lg">
                         <i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Variación (vs. ayer)</span>
+                    <span class="text-slate-400 text-sm font-medium">Variación (24h)</span>
                 </div>
                 <div class="text-2xl font-bold" id="variacion-valor">0.00%</div>
             </div>
@@ -188,7 +188,7 @@
 
     <script>
         // ==========================================================
-        //  MEJORA DE MANEJO DE ERRORES SSE
+        //  MANEJO DE SSE Y ACTUALIZACIÓN DE DATOS
         // ==========================================================
         const estadoElement = document.getElementById('estado-sistema');
         let ultimoEstado = 'Conectando...';
@@ -206,7 +206,7 @@
             document.getElementById('rsi-valor').innerText = d.rsi.toFixed(2);
             document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
 
-            // Actualizar estado con la hora UTC (siempre que haya datos)
+            // Actualizar estado con la hora UTC
             ultimoEstado = d.ultima_actualizacion;
             estadoElement.innerText = ultimoEstado;
 
@@ -233,14 +233,13 @@
             }).join('');
         };
 
-        // Manejo de errores: mostrar "Reconectando..." pero no borrar el estado previo
+        // Manejo de errores: reconexión automática sin perder estado
         source.onerror = (e) => {
             if (ultimoEstado === 'Conectando...' || ultimoEstado === 'N/A') {
                 estadoElement.innerText = '⚠️ Esperando conexión...';
             } else {
                 estadoElement.innerText = '🔄 Reconectando... (último dato: ' + ultimoEstado + ')';
             }
-            // NO cerramos la conexión manualmente; el navegador ya lo intenta de nuevo automáticamente.
         };
 
         // ==========================================================

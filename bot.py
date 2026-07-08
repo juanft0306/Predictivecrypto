@@ -12,35 +12,32 @@ def enviar_alerta_telegram(mensaje):
         print("❌ Error al enviar a Telegram:", e, flush=True)
 
 def analizar_mercado():
-    # Lista de servidores espejo de Binance para saltarnos bloqueos de IP
+    # SOLUCIÓN: Usamos Binance.US (permitido para IPs de Render) y MEXC como respaldo
     endpoints = [
-        "https://api.binance.com/api/v3/klines",
-        "https://api1.binance.com/api/v3/klines",
-        "https://api2.binance.com/api/v3/klines",
-        "https://api3.binance.com/api/v3/klines"
+        "https://api.binance.us/api/v3/klines",
+        "https://api.mexc.com/api/v3/klines"
     ]
     
     respuesta = None
     ultimo_error = ""
     
-    # Intentar conectarse a cada uno hasta que uno funcione
+    # Intentar conectarse a las nuevas APIs que no bloquean a Render
     for url in endpoints:
         try:
-            # Construimos la URL con los parámetros limpios
             url_completa = f"{url}?symbol=BTCUSDT&interval=1d&limit=15"
             respuesta = requests.get(url_completa, timeout=10)
             if respuesta.status_code == 200:
-                break  # Éxito, salimos del bucle de servidores
+                print(f"✅ Conectado exitosamente a: {url}", flush=True)
+                break  # Éxito, salimos del bucle
             else:
                 ultimo_error = f"HTTP {respuesta.status_code} ({url.split('//')[1].split('/')[0]})"
         except Exception as e:
             ultimo_error = str(e)
     
-    # Si ninguno funcionó, reflejar el error en la interfaz web para saber qué pasa
     if not respuesta or respuesta.status_code != 200:
         ahora = datetime.now().strftime("%H:%M:%S")
         config.datos_mercado["ultima_actualizacion"] = f"❌ Error API: {ultimo_error} ({ahora})"
-        print(f"❌ Fallaron todos los servidores de Binance. Motivo: {ultimo_error}", flush=True)
+        print(f"❌ Fallaron los servidores. Motivo: {ultimo_error}", flush=True)
         return
 
     try:
@@ -75,7 +72,7 @@ def analizar_mercado():
         config.datos_mercado["rsi"] = rsi
         config.datos_mercado["ultima_actualizacion"] = ahora
 
-        # Actualizar historial sin duplicar filas idénticas seguidas
+        # Actualizar historial
         if not config.historial_analisis or config.historial_analisis[0]["precio"] != precio_actual:
             config.historial_analisis.insert(0, {
                 "fecha": ahora,
@@ -86,7 +83,7 @@ def analizar_mercado():
             if len(config.historial_analisis) > 10:
                 config.historial_analisis.pop()
 
-        print(f"✅ Análisis exitoso a las {ahora}. BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
+        print(f"✅ Análisis a las {ahora}. BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
 
         # Disparador de alertas a Telegram
         if rsi < 30:
@@ -98,12 +95,12 @@ def analizar_mercado():
 
     except Exception as e:
         ahora = datetime.now().strftime("%H:%M:%S")
-        config.datos_mercado["ultima_actualizacion"] = f"❌ Error Estructura JSON ({ahora})"
-        print(f"❌ Error procesando la respuesta de Binance: {e}", flush=True)
+        config.datos_mercado["ultima_actualizacion"] = f"❌ Error procesando JSON ({ahora})"
+        print(f"❌ Error procesando los datos: {e}", flush=True)
 
 def bucle_bot():
     print("🤖 Iniciando bucle de análisis secundario (Frecuencia: 30s)...", flush=True)
     while True:
         analizar_mercado()
         time.sleep(30)
-          
+                

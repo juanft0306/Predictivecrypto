@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        * {
-            font-family: 'Inter', sans-serif;
-        }
+        * { font-family: 'Inter', sans-serif; }
         body {
             background: radial-gradient(ellipse at top, #0f172a, #020617);
             min-height: 100vh;
@@ -20,21 +18,17 @@
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
             transition: all 0.3s ease;
         }
         .glass-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            border-color: rgba(99,102,241,0.3);
         }
-        .price-glow {
-            text-shadow: 0 0 40px rgba(52, 211, 153, 0.2);
-        }
-        .badge-pulse {
-            animation: pulse 2s infinite;
-        }
+        .price-glow { text-shadow: 0 0 40px rgba(52,211,153,0.2); }
+        .badge-pulse { animation: pulse 2s infinite; }
         @keyframes pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
@@ -46,76 +40,122 @@
         }
         .btn-gradient:hover {
             transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 30px rgba(99,102,241,0.4);
         }
-        .btn-gradient:active {
-            transform: scale(0.98);
-        }
+        .btn-gradient:active { transform: scale(0.98); }
         .historico-item {
             transition: all 0.2s ease;
             border-left: 3px solid transparent;
         }
         .historico-item:hover {
-            background: rgba(99, 102, 241, 0.05);
+            background: rgba(99,102,241,0.05);
             border-left-color: #6366f1;
             padding-left: 0.5rem;
         }
-        .rsi-neutral {
-            color: #fbbf24;
-        }
-        .rsi-sobrevendido {
-            color: #60a5fa;
-        }
-        .rsi-sobrecomprado {
-            color: #f87171;
-        }
+        .rsi-neutral { color: #fbbf24; }
+        .rsi-sobrevendido { color: #60a5fa; }
+        .rsi-sobrecomprado { color: #f87171; }
         .estado-badge {
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.2);
             padding: 0.2rem 0.8rem;
             border-radius: 9999px;
             font-size: 0.7rem;
             font-weight: 600;
             color: #a5b4fc;
         }
-        .statu-text {
-            color: #94a3b8;
-            font-size: 0.75rem;
+        .statu-text { color: #94a3b8; font-size: 0.75rem; }
+        /* Menú hamburguesa */
+        .menu-toggle {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
         }
-        .nav-link {
-            color: #94a3b8;
-            transition: color 0.2s;
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #94a3b8;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
         }
-        .nav-link:hover {
+        .menu-toggle:hover span {
+            background: #a5b4fc;
+        }
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(4px, 4px);
+        }
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(4px, -4px);
+        }
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30,41,59,0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            padding: 0.5rem 0;
+            min-width: 150px;
+            z-index: 50;
+        }
+        .menu-dropdown.open { display: block; }
+        .menu-dropdown a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .menu-dropdown a:hover {
+            background: rgba(99,102,241,0.1);
             color: #a5b4fc;
         }
-        .nav-link.active {
+        .menu-dropdown a.active {
             color: #818cf8;
-            border-bottom: 2px solid #818cf8;
+            font-weight: 600;
         }
+        /* Posición relativa para el menú */
+        .menu-wrapper { position: relative; }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
 
-        <!-- HEADER / NAVEGACIÓN -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <!-- HEADER / NAVEGACIÓN CON HAMBURGUESA -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                     <i class="fas fa-chart-line text-indigo-400 mr-2"></i>CryptoAlert
                 </h1>
-                <span class="text-slate-500 hidden sm:inline">|</span>
-                <div class="flex gap-4 text-sm">
-                    <a href="/" class="nav-link active">Dashboard</a>
-                    <a href="/inversion" class="nav-link">Mi Inversión</a>
-                </div>
             </div>
-            <div class="flex items-center gap-3 flex-wrap">
-                <span class="estado-badge">
+            <div class="flex items-center gap-3">
+                <!-- Menú hamburguesa -->
+                <div class="menu-wrapper">
+                    <div class="menu-toggle" id="menuToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="menu-dropdown" id="menuDropdown">
+                        <a href="/" class="active">Dashboard</a>
+                        <a href="/inversion">Mi Inversión</a>
+                    </div>
+                </div>
+                <span class="estado-badge hidden sm:inline-block">
                     <i class="fas fa-circle text-emerald-400 text-xs mr-1"></i> Conectado
                 </span>
-                <button id="btn-alerta" class="btn-gradient text-white font-bold py-2.5 px-5 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i> Enviar alerta
+                <button id="btn-alerta" class="btn-gradient text-white font-bold py-2 px-4 rounded-xl text-xs shadow-lg flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> <span class="hidden sm:inline">Enviar alerta</span>
                 </button>
             </div>
         </div>
@@ -123,54 +163,35 @@
         <!-- PRECIO PRINCIPAL -->
         <div class="glass-card rounded-3xl p-8 mb-8 text-center">
             <p class="text-slate-400 text-sm uppercase tracking-wider mb-1">Bitcoin / USDT</p>
-            <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">
-                $0.00
-            </div>
+            <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">$0.00</div>
             <div class="flex justify-center items-center gap-4 mt-2 text-sm flex-wrap">
-                <span class="statu-text">
-                    <i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span>
-                </span>
+                <span class="statu-text"><i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span></span>
                 <span class="text-slate-600">|</span>
-                <span class="statu-text">
-                    <i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span>
-                </span>
+                <span class="statu-text"><i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span></span>
                 <span class="text-slate-600">|</span>
-                <span class="statu-text text-emerald-400/70">
-                    <i class="fas fa-bolt text-xs mr-1"></i> Cada 10s
-                </span>
+                <span class="statu-text text-emerald-400/70"><i class="fas fa-bolt text-xs mr-1"></i> Cada 10s</span>
             </div>
         </div>
 
         <!-- 3 TARJETAS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Precio actual (detalle) -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-indigo-500/20 rounded-lg">
-                        <i class="fas fa-bitcoin-sign text-indigo-400 text-xl"></i>
-                    </div>
+                    <div class="p-2 bg-indigo-500/20 rounded-lg"><i class="fas fa-bitcoin-sign text-indigo-400 text-xl"></i></div>
                     <span class="text-slate-400 text-sm font-medium">Precio</span>
                 </div>
                 <div class="text-2xl font-bold text-white" id="btc-precio-detalle">$0.00</div>
             </div>
-
-            <!-- Variación (24h) -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-emerald-500/20 rounded-lg">
-                        <i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i>
-                    </div>
+                    <div class="p-2 bg-emerald-500/20 rounded-lg"><i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i></div>
                     <span class="text-slate-400 text-sm font-medium">Variación (24h)</span>
                 </div>
                 <div class="text-2xl font-bold" id="variacion-valor">0.00%</div>
             </div>
-
-            <!-- RSI -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-amber-500/20 rounded-lg">
-                        <i class="fas fa-wave-square text-amber-400 text-xl"></i>
-                    </div>
+                    <div class="p-2 bg-amber-500/20 rounded-lg"><i class="fas fa-wave-square text-amber-400 text-xl"></i></div>
                     <span class="text-slate-400 text-sm font-medium">RSI (14 días)</span>
                 </div>
                 <div class="text-2xl font-bold text-amber-400" id="rsi-valor">50.00</div>
@@ -185,16 +206,30 @@
                 </h2>
                 <span class="text-xs text-slate-500">Últimas 5 actualizaciones</span>
             </div>
-            <div id="historial-lista" class="divide-y divide-slate-700/50">
-                <!-- JavaScript llena esto -->
-            </div>
+            <div id="historial-lista" class="divide-y divide-slate-700/50"></div>
         </div>
 
     </div>
 
     <script>
         // ============================================================
-        //  MANEJO DE SSE Y ACTUALIZACIÓN DE DATOS
+        //  MENÚ HAMBURGUESA
+        // ============================================================
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('menuDropdown').classList.toggle('open');
+        });
+        // Cerrar al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.menu-wrapper');
+            if (!wrapper.contains(e.target)) {
+                document.getElementById('menuToggle').classList.remove('active');
+                document.getElementById('menuDropdown').classList.remove('open');
+            }
+        });
+
+        // ============================================================
+        //  SSE Y ACTUALIZACIÓN DE DATOS
         // ============================================================
         const estadoElement = document.getElementById('estado-sistema');
         let ultimoEstado = 'Conectando...';
@@ -212,18 +247,15 @@
             document.getElementById('rsi-valor').innerText = d.rsi.toFixed(2);
             document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
 
-            // Actualizar estado con la hora UTC
             ultimoEstado = d.ultima_actualizacion;
             estadoElement.innerText = ultimoEstado;
 
-            // Variación con color
             const varEl = document.getElementById('variacion-valor');
             const v = d.variacion;
             const signo = v > 0 ? '+' : '';
             varEl.innerText = signo + v.toFixed(2) + '%';
             varEl.className = 'text-2xl font-bold ' + (v > 0 ? 'text-emerald-400' : v < 0 ? 'text-red-400' : 'text-slate-400');
 
-            // Historial
             const lista = document.getElementById('historial-lista');
             lista.innerHTML = data.historial.map(h => {
                 const estadoClass = h.estado === 'Sobrevendido' ? 'rsi-sobrevendido' :
@@ -239,14 +271,12 @@
             }).join('');
         };
 
-        // Manejo de errores: reconexión automática sin perder estado
         source.onerror = (e) => {
             if (ultimoEstado === 'Conectando...' || ultimoEstado === 'N/A') {
                 estadoElement.innerText = '⚠️ Esperando conexión...';
             } else {
                 estadoElement.innerText = '🔄 Reconectando... (último dato: ' + ultimoEstado + ')';
             }
-            // No cerramos la conexión manualmente; el navegador ya lo intenta de nuevo automáticamente.
         };
 
         // ============================================================

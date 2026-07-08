@@ -7,7 +7,7 @@ import config
 #  CONSTANTES
 # ============================================================
 HISTORIAL_MAX = 5
-INTERVALO_ACTUALIZACION = 60   # segundos
+INTERVALO_ACTUALIZACION = 10   # 10 segundos entre actualizaciones
 
 # Variable global para la referencia de precio (cierre del día anterior)
 precio_anterior = None

@@ -15,18 +15,15 @@ def stream():
         while True:
             config.actualizacion_event.wait(timeout=0.5)
             config.actualizacion_event.clear()
-            actual = config.datos_mercado.get("ultima_actualizacion")
+            # Tomamos la fecha de actualización de BTC como referencia (cualquiera vale)
+            actual = config.datos_mercado.get("BTCUSDT", {}).get("ultima_actualizacion")
             if actual != ultima_vez and actual is not None:
                 ultima_vez = actual
-                # Enviamos también los datos de inversión
                 data = {
                     'datos': config.datos_mercado,
                     'historial': list(config.historial_analisis),
-                    'inversion': {
-                        'cantidad_btc': config.cantidad_btc,
-                        'precio_objetivo': config.precio_objetivo,
-                        'objetivo_alcanzado': config.objetivo_alcanzado
-                    }
+                    'inversiones': config.inversiones,
+                    'moneda_seleccionada': config.moneda_seleccionada
                 }
                 yield f"data: {json.dumps(data)}\n\n"
             time.sleep(0.01)
@@ -45,18 +42,39 @@ def enviar_alerta():
 def actualizar_inversion():
     try:
         data = request.get_json()
-        cantidad = float(data.get('cantidad_btc', 0))
-        objetivo = float(data.get('precio_objetivo', 0))
+        symbol = data.get('symbol', config.moneda_seleccionada)
+        cantidad = float(data.get('cantidad', 0))
+        objetivo = float(data.get('objetivo', 0))
+        if symbol not in config.inversiones:
+            return jsonify({"status": "error", "mensaje": "Moneda no válida"}), 400
         if cantidad < 0 or objetivo < 0:
             return jsonify({"status": "error", "mensaje": "Los valores deben ser positivos"}), 400
-        config.cantidad_btc = cantidad
-        config.precio_objetivo = objetivo
-        config.objetivo_alcanzado = False   # Resetear notificación
+        config.inversiones[symbol]["cantidad"] = cantidad
+        config.inversiones[symbol]["objetivo"] = objetivo
+        config.inversiones[symbol]["alcanzado"] = False  # resetear notificación
         # Forzar actualización SSE
         config.actualizacion_event.set()
-        return jsonify({"status": "ok", "mensaje": "Datos de inversión actualizados"})
+        return jsonify({"status": "ok", "mensaje": f"Inversión en {symbol} actualizada"})
     except Exception as e:
         config.logger.error(f"Error en /api/actualizar_inversion: {e}")
+        return jsonify({"status": "error", "mensaje": str(e)}), 500
+
+@app.route("/api/cambiar_moneda", methods=['POST'])
+def cambiar_moneda():
+    try:
+        data = request.get_json()
+        symbol = data.get('symbol')
+        if symbol not in config.MONEDAS:
+            return jsonify({"status": "error", "mensaje": "Moneda no válida"}), 400
+        config.moneda_seleccionada = symbol
+        # Resetear historial para la nueva moneda (opcional, podemos mantener histórico por moneda)
+        # Por simplicidad, limpiaremos el historial al cambiar de moneda
+        config.historial_analisis.clear()
+        # Forzar SSE para actualizar
+        config.actualizacion_event.set()
+        return jsonify({"status": "ok", "mensaje": f"Moneda cambiada a {symbol}"})
+    except Exception as e:
+        config.logger.error(f"Error en /api/cambiar_moneda: {e}")
         return jsonify({"status": "error", "mensaje": str(e)}), 500
 
 @app.route("/")

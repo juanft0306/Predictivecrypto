@@ -6,15 +6,13 @@ import config
 
 app = Flask(__name__)
 
-
-# Endpoint asíncrono para alimentar el JavaScript del navegador
 @app.route("/api/data")
 def api_data():
-    # Convertimos el historial a una lista estática para evitar errores de hilos durante la lectura
-    return jsonify(
-        {"datos": config.datos_mercado, "historial": list(config.historial_analisis)}
-    )
-
+    # Convertimos a lista explícita para evitar colisiones de hilos al leer la memoria
+    return jsonify({
+        "datos": config.datos_mercado,
+        "historial": list(config.historial_analisis)
+    })
 
 @app.route("/")
 def home():
@@ -53,14 +51,14 @@ def home():
                 </div>
             </div>
 
-            <p class="text-xs text-slate-500 mb-8 text-right">Última revisión del bot: <span id="actualizacion-tiempo" class="text-slate-300 font-medium">N/A</span></p>
+            <p class="text-xs text-slate-500 mb-8 text-right">Estado del sistema: <span id="actualizacion-tiempo" class="text-slate-300 font-medium">N/A</span></p>
 
             <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-700">
                     <h2 class="text-xl font-bold text-slate-200">📋 Historial Reciente de Análisis</h2>
                 </div>
                 <div id="historial-lista" class="divide-y divide-slate-700 max-h-96 overflow-y-auto">
-                    <p class="p-6 text-slate-400 text-center">Esperando el primer análisis del mercado...</p>
+                    <p class="p-6 text-slate-400 text-center">Esperando datos del backend...</p>
                 </div>
             </div>
         </div>
@@ -74,15 +72,16 @@ def home():
                     const datos = resultado.datos;
                     const historial = resultado.historial;
 
-                    // Formatear precio de BTC de manera profesional
-                    const precioFormateado = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(datos.precio_actual);
-                    document.getElementById('btc-precio').innerText = precioFormateado + " USD";
+                    if (datos.precio_actual > 0) {
+                        const precioFormateado = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(datos.precio_actual);
+                        document.getElementById('btc-precio').innerText = precioFormateado + " USD";
+                    } else {
+                        document.getElementById('btc-precio').innerText = "$0.00 USD";
+                    }
                     
-                    // Actualizar textos básicos
                     document.getElementById('rsi-valor').innerText = datos.rsi.toFixed(2);
                     document.getElementById('actualizacion-tiempo').innerText = datos.ultima_actualizacion;
 
-                    // Cambiar dinámicamente colores y badges del RSI
                     const rsiVal = datos.rsi;
                     const rsiBadge = document.getElementById('rsi-badge');
                     const rsiTexto = document.getElementById('rsi-valor');
@@ -101,7 +100,6 @@ def home():
                         rsiBadge.innerText = "NEUTRO";
                     }
 
-                    // Renderizar las filas del historial en la tabla
                     const listaHistorial = document.getElementById('historial-lista');
                     if (historial.length === 0) {
                         listaHistorial.innerHTML = '<p class="p-6 text-slate-400 text-center">Esperando el primer análisis del mercado...</p>';
@@ -126,29 +124,23 @@ def home():
                         listaHistorial.innerHTML = htmlContenido;
                     }
                 } catch (error) {
-                    console.error("Error al refrescar los datos del dashboard:", error);
+                    console.error("Error al actualizar la interfaz:", error);
                 }
             }
 
-            // Ejecución inmediata al abrir la página
             actualizarDashboard();
-            
-            // Refresco automático continuo cada 30 segundos (30000 milisegundos)
-            setInterval(actualizarDashboard, 30000);
+            setInterval(actualizarDashboard, 30000); // Sincronización estricta cada 30s
         </script>
     </body>
     </html>
     """
     return render_template_string(html_dashboard)
 
-
 if __name__ == "__main__":
-    # 1. Iniciamos el hilo del bot secundario de fondo
     t_bot = Thread(target=bot.bucle_bot)
     t_bot.daemon = True
     t_bot.start()
 
-    # 2. Arrancamos el orquestador principal de Flask para Render
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
     

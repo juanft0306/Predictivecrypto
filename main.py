@@ -18,7 +18,17 @@ def stream():
             actual = config.datos_mercado.get("ultima_actualizacion")
             if actual != ultima_vez and actual is not None:
                 ultima_vez = actual
-                yield f"data: {json.dumps({'datos': config.datos_mercado, 'historial': list(config.historial_analisis)})}\n\n"
+                # Enviamos también los datos de inversión
+                data = {
+                    'datos': config.datos_mercado,
+                    'historial': list(config.historial_analisis),
+                    'inversion': {
+                        'cantidad_btc': config.cantidad_btc,
+                        'precio_objetivo': config.precio_objetivo,
+                        'objetivo_alcanzado': config.objetivo_alcanzado
+                    }
+                }
+                yield f"data: {json.dumps(data)}\n\n"
             time.sleep(0.01)
     return Response(generador_datos(), mimetype='text/event-stream')
 
@@ -52,6 +62,10 @@ def actualizar_inversion():
 @app.route("/")
 def home():
     return render_template('index.html')
+
+@app.route("/inversion")
+def inversion():
+    return render_template('inversion.html')
 
 if __name__ == "__main__":
     Thread(target=bot.bucle_bot, daemon=True).start()

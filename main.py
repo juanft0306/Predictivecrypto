@@ -19,10 +19,12 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 
-# === CONFIGURACIÓN DE TELEGRAM ===
-# RECUERDA: Cambia tu token en BotFather por seguridad antes de activarlo formalmente
-TOKEN_TELEGRAM = "8113503204:AAF54TCwgjngtCyhYvWbCxDLMfyTrfTOB8"
-CHAT_ID_TELEGRAM = "5997657424"
+# === CONFIGURACIÓN DE TELEGRAM (SEGURA) ===
+# Se leen desde las variables de entorno de Render. Si no existen, usan los valores por defecto.
+TOKEN_TELEGRAM = os.environ.get(
+    "TOKEN_TELEGRAM", "8113503204:AAF54TCwgjngtCyhYvWbCxDLMfyTrfTOB8"
+)
+CHAT_ID_TELEGRAM = os.environ.get("CHAT_ID_TELEGRAM", "5997657424")
 
 
 def enviar_alerta_telegram(mensaje):
@@ -93,3 +95,4 @@ if __name__ == "__main__":
 
     # 2. Corremos el bot en el hilo principal
     bucle_bot()
+    

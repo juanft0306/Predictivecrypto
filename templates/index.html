@@ -183,8 +183,14 @@
     </div>
 
     <script>
-        // EventSource
+        // ==========================================================
+        //  MEJORA DE MANEJO DE ERRORES SSE
+        // ==========================================================
+        const estadoElement = document.getElementById('estado-sistema');
+        let ultimoEstado = 'Conectando...';
+
         const source = new EventSource('/api/stream');
+
         source.onmessage = (e) => {
             const data = JSON.parse(e.data);
             const d = data.datos;
@@ -195,7 +201,10 @@
             document.getElementById('btc-precio-detalle').innerText = precioFormateado;
             document.getElementById('rsi-valor').innerText = d.rsi.toFixed(2);
             document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
-            document.getElementById('estado-sistema').innerText = d.ultima_actualizacion;
+
+            // Actualizar estado con la hora UTC (siempre que haya datos)
+            ultimoEstado = d.ultima_actualizacion;
+            estadoElement.innerText = ultimoEstado;
 
             // Variación con color
             const varEl = document.getElementById('variacion-valor');
@@ -208,24 +217,33 @@
             const lista = document.getElementById('historial-lista');
             lista.innerHTML = data.historial.map(h => {
                 const estadoClass = h.estado === 'Sobrevendido' ? 'rsi-sobrevendido' :
-                    h.estado === 'Sobrecomprado' ? 'rsi-sobrecomprado' :
-                    'rsi-neutral';
+                                   h.estado === 'Sobrecomprado' ? 'rsi-sobrecomprado' :
+                                   'rsi-neutral';
                 return `
-                        <div class="historico-item py-3 px-2 flex flex-wrap justify-between items-center text-sm">
-                            <span class="text-slate-400"><i class="far fa-clock mr-1"></i>${h.fecha}</span>
-                            <span class="font-bold text-white">BTC $${h.precio.toLocaleString()}</span>
-                            <span class="${estadoClass} font-semibold text-xs bg-slate-800/50 px-3 py-1 rounded-full">${h.estado}</span>
-                        </div>
-                    `;
+                    <div class="historico-item py-3 px-2 flex flex-wrap justify-between items-center text-sm">
+                        <span class="text-slate-400"><i class="far fa-clock mr-1"></i>${h.fecha}</span>
+                        <span class="font-bold text-white">BTC $${h.precio.toLocaleString()}</span>
+                        <span class="${estadoClass} font-semibold text-xs bg-slate-800/50 px-3 py-1 rounded-full">${h.estado}</span>
+                    </div>
+                `;
             }).join('');
         };
+
+        // Manejo de errores: mostrar "Reconectando..." pero no borrar el estado previo
         source.onerror = (e) => {
-            document.getElementById('estado-sistema').innerText = '⚠️ Error de conexión';
-            source.close();
-            setTimeout(() => { new EventSource('/api/stream'); }, 3000);
+            // Solo cambiamos el texto si realmente no ha llegado ningún dato aún
+            if (ultimoEstado === 'Conectando...' || ultimoEstado === 'N/A') {
+                estadoElement.innerText = '⚠️ Esperando conexión...';
+            } else {
+                estadoElement.innerText = '🔄 Reconectando... (último dato: ' + ultimoEstado + ')';
+            }
+            // NO cerramos la conexión manualmente; el navegador ya lo intenta de nuevo automáticamente.
+            // Dejamos que el EventSource maneje la reconexión por sí solo.
         };
 
-        // Botón alerta
+        // ==========================================================
+        //  BOTÓN DE ALERTA MANUAL
+        // ==========================================================
         document.getElementById('btn-alerta').addEventListener('click', async function() {
             const original = this.innerHTML;
             this.disabled = true;
@@ -243,4 +261,4 @@
         });
     </script>
 </body>
-  </html>
+</html>

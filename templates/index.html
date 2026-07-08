@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CryptoAlert Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: radial-gradient(ellipse at top, #0f172a, #020617);
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .price-glow {
+            text-shadow: 0 0 40px rgba(52, 211, 153, 0.2);
+        }
+        .badge-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.7;
+            }
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+        }
+        .btn-gradient:active {
+            transform: scale(0.98);
+        }
+        .historico-item {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .historico-item:hover {
+            background: rgba(99, 102, 241, 0.05);
+            border-left-color: #6366f1;
+            padding-left: 0.5rem;
+        }
+        .rsi-neutral {
+            color: #fbbf24;
+        }
+        .rsi-sobrevendido {
+            color: #60a5fa;
+        }
+        .rsi-sobrecomprado {
+            color: #f87171;
+        }
+        .estado-badge {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 0.2rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+        .statu-text {
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-6xl mx-auto">
+
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    <i class="fas fa-chart-line text-indigo-400 mr-2"></i>CryptoAlert
+                </h1>
+                <p class="text-slate-400 text-sm mt-1 flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 bg-emerald-400 rounded-full badge-pulse"></span>
+                    Streaming en tiempo real
+                </p>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="estado-badge">
+                    <i class="fas fa-circle text-emerald-400 text-xs mr-1"></i> Conectado
+                </span>
+                <button id="btn-alerta" class="btn-gradient text-white font-bold py-2.5 px-5 rounded-xl text-sm shadow-lg flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Enviar alerta
+                </button>
+            </div>
+        </div>
+
+        <!-- PRECIO PRINCIPAL -->
+        <div class="glass-card rounded-3xl p-8 mb-8 text-center">
+            <p class="text-slate-400 text-sm uppercase tracking-wider mb-1">Bitcoin / USDT</p>
+            <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">
+                $0.00
+            </div>
+            <div class="flex justify-center items-center gap-4 mt-2 text-sm">
+                <span class="statu-text">
+                    <i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span>
+                </span>
+                <span class="text-slate-600">|</span>
+                <span class="statu-text">
+                    <i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- 3 TARJETAS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Precio actual (detalle) -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 bg-indigo-500/20 rounded-lg">
+                        <i class="fas fa-bitcoin-sign text-indigo-400 text-xl"></i>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Precio</span>
+                </div>
+                <div class="text-2xl font-bold text-white" id="btc-precio-detalle">$0.00</div>
+            </div>
+
+            <!-- Variación -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 bg-emerald-500/20 rounded-lg">
+                        <i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Variación (vs. ayer)</span>
+                </div>
+                <div class="text-2xl font-bold" id="variacion-valor">0.00%</div>
+            </div>
+
+            <!-- RSI -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 bg-amber-500/20 rounded-lg">
+                        <i class="fas fa-wave-square text-amber-400 text-xl"></i>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">RSI (14 días)</span>
+                </div>
+                <div class="text-2xl font-bold text-amber-400" id="rsi-valor">50.00</div>
+            </div>
+        </div>
+
+        <!-- HISTORIAL -->
+        <div class="glass-card rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-history text-indigo-400"></i> Historial Reciente
+                </h2>
+                <span class="text-xs text-slate-500">Últimas 5 actualizaciones</span>
+            </div>
+            <div id="historial-lista" class="divide-y divide-slate-700/50">
+                <!-- JavaScript llena esto -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // EventSource
+        const source = new EventSource('/api/stream');
+        source.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            const d = data.datos;
+
+            const precioFormateado = '$' + d.precio_actual.toLocaleString();
+
+            document.getElementById('btc-precio').innerText = precioFormateado;
+            document.getElementById('btc-precio-detalle').innerText = precioFormateado;
+            document.getElementById('rsi-valor').innerText = d.rsi.toFixed(2);
+            document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
+            document.getElementById('estado-sistema').innerText = d.ultima_actualizacion;
+
+            // Variación con color
+            const varEl = document.getElementById('variacion-valor');
+            const v = d.variacion;
+            const signo = v > 0 ? '+' : '';
+            varEl.innerText = signo + v.toFixed(2) + '%';
+            varEl.className = 'text-2xl font-bold ' + (v > 0 ? 'text-emerald-400' : v < 0 ? 'text-red-400' : 'text-slate-400');
+
+            // Historial
+            const lista = document.getElementById('historial-lista');
+            lista.innerHTML = data.historial.map(h => {
+                const estadoClass = h.estado === 'Sobrevendido' ? 'rsi-sobrevendido' :
+                    h.estado === 'Sobrecomprado' ? 'rsi-sobrecomprado' :
+                    'rsi-neutral';
+                return `
+                        <div class="historico-item py-3 px-2 flex flex-wrap justify-between items-center text-sm">
+                            <span class="text-slate-400"><i class="far fa-clock mr-1"></i>${h.fecha}</span>
+                            <span class="font-bold text-white">BTC $${h.precio.toLocaleString()}</span>
+                            <span class="${estadoClass} font-semibold text-xs bg-slate-800/50 px-3 py-1 rounded-full">${h.estado}</span>
+                        </div>
+                    `;
+            }).join('');
+        };
+        source.onerror = (e) => {
+            document.getElementById('estado-sistema').innerText = '⚠️ Error de conexión';
+            source.close();
+            setTimeout(() => { new EventSource('/api/stream'); }, 3000);
+        };
+
+        // Botón alerta
+        document.getElementById('btn-alerta').addEventListener('click', async function() {
+            const original = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
+                const data = await resp.json();
+                alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
+            } catch (err) {
+                alert('❌ Error al enviar la alerta');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = original;
+            }
+        });
+    </script>
+</body>
+  </html>

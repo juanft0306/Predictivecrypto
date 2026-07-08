@@ -2,7 +2,7 @@ import os
 import json
 import time
 from threading import Thread
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response, jsonify, request
 import bot
 import config
 
@@ -13,7 +13,7 @@ def stream():
     def generador_datos():
         ultima_vez = None
         while True:
-            config.actualizacion_event.wait(timeout=0.5)  # respuesta rápida
+            config.actualizacion_event.wait(timeout=0.5)
             config.actualizacion_event.clear()
             actual = config.datos_mercado.get("ultima_actualizacion")
             if actual != ultima_vez and actual is not None:
@@ -29,6 +29,24 @@ def enviar_alerta():
         return jsonify({"status": "ok", "mensaje": "Alerta enviada correctamente"})
     except Exception as e:
         config.logger.error(f"Error en /api/enviar_alerta: {e}")
+        return jsonify({"status": "error", "mensaje": str(e)}), 500
+
+@app.route("/api/actualizar_inversion", methods=['POST'])
+def actualizar_inversion():
+    try:
+        data = request.get_json()
+        cantidad = float(data.get('cantidad_btc', 0))
+        objetivo = float(data.get('precio_objetivo', 0))
+        if cantidad < 0 or objetivo < 0:
+            return jsonify({"status": "error", "mensaje": "Los valores deben ser positivos"}), 400
+        config.cantidad_btc = cantidad
+        config.precio_objetivo = objetivo
+        config.objetivo_alcanzado = False   # Resetear notificación
+        # Forzar actualización SSE
+        config.actualizacion_event.set()
+        return jsonify({"status": "ok", "mensaje": "Datos de inversión actualizados"})
+    except Exception as e:
+        config.logger.error(f"Error en /api/actualizar_inversion: {e}")
         return jsonify({"status": "error", "mensaje": str(e)}), 500
 
 @app.route("/")

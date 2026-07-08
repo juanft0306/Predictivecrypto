@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ============================================================
-           ESTILOS (igual que antes, con algunas mejoras)
+           ESTILOS
            ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
         * { font-family: 'Inter', sans-serif; }
@@ -192,7 +192,7 @@
                 <h2 class="text-3xl font-bold text-white flex items-center gap-3">
                     <i class="fas fa-coins text-emerald-400"></i> Seguimiento de Inversión
                 </h2>
-                <p class="text-slate-400 text-sm mt-1">Monitorea el rendimiento de tu posición en la moneda seleccionada</p>
+                <p class="text-slate-400 text-sm mt-1">Configura tu inversión para recibir alertas cuando alcances tu meta</p>
             </div>
             <div class="flex items-center gap-2">
                 <span class="text-slate-400 text-sm">Moneda:</span>
@@ -213,40 +213,40 @@
             </div>
             <div class="glass-card rounded-2xl p-5">
                 <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-dollar-sign"></i> Valor Actual
+                    <i class="fas fa-dollar-sign"></i> Capital invertido
                 </p>
-                <p class="text-2xl font-bold text-emerald-400" id="valor-inversion">$0.00</p>
+                <p class="text-2xl font-bold text-white" id="capital-invertido">$0.00</p>
             </div>
             <div class="glass-card rounded-2xl p-5">
                 <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-bullseye"></i> Objetivo (USD)
+                    <i class="fas fa-bullseye"></i> Ganancia deseada
                 </p>
-                <p class="text-2xl font-bold text-white" id="precio-objetivo">$0.00</p>
+                <p class="text-2xl font-bold text-white" id="ganancia-deseada">$0.00</p>
             </div>
             <div class="glass-card rounded-2xl p-5">
                 <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-chart-simple"></i> Ganancia / Pérdida
+                    <i class="fas fa-chart-simple"></i> Ganancia actual
                 </p>
-                <p class="text-2xl font-bold" id="ganancia-perdida">0.00%</p>
+                <p class="text-2xl font-bold" id="ganancia-actual">0.00%</p>
             </div>
         </div>
 
-        <!-- BARRA DE PROGRESO -->
+        <!-- BARRA DE PROGRESO (hacia el monto total deseado) -->
         <div class="glass-card rounded-2xl p-5 mb-6">
             <div class="flex justify-between items-center mb-2">
-                <span class="text-slate-400 text-sm">Progreso hacia el objetivo</span>
+                <span class="text-slate-400 text-sm">Progreso hacia tu meta</span>
                 <span class="text-white text-sm font-bold" id="progreso-texto">0%</span>
             </div>
             <div class="progress-bar">
                 <div class="progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400" id="progreso-bar" style="width:0%"></div>
             </div>
             <div class="flex justify-between text-xs text-slate-500 mt-1">
-                <span>$0</span>
-                <span id="objetivo-label">$0</span>
+                <span id="label-valor-actual">$0.00</span>
+                <span id="label-meta">$0.00</span>
             </div>
         </div>
 
-        <!-- CONFIGURACIÓN -->
+        <!-- CONFIGURACIÓN (NUEVA) -->
         <div class="glass-card rounded-2xl p-6 mb-6">
             <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
                 <i class="fas fa-sliders-h text-indigo-400"></i> Configurar Inversión
@@ -254,16 +254,43 @@
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Cantidad de la moneda</label>
+                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">
+                        Cantidad de moneda (ej: 0.00003333)
+                    </label>
                     <input type="number" id="input-cantidad" step="0.00000001" min="0"
                            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
                            placeholder="Ej: 0.00006790">
+                    <p class="text-xs text-slate-500 mt-1">Cantidad de la criptomoneda que posees</p>
                 </div>
                 <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Precio Objetivo (USD)</label>
-                    <input type="number" id="input-objetivo" step="0.01" min="0"
+                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">
+                        Ganancia deseada (USD)
+                    </label>
+                    <input type="number" id="input-ganancia" step="0.01" min="0"
                            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                           placeholder="Ej: 68000">
+                           placeholder="Ej: 100.00">
+                    <p class="text-xs text-slate-500 mt-1">Cuánto quieres ganar (sobre tu capital)</p>
+                </div>
+            </div>
+            <!-- Resumen automático (se muestra al guardar) -->
+            <div id="resumen-inversion" class="mt-4 p-4 bg-slate-800/50 rounded-lg hidden">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <div>
+                        <p class="text-slate-400 text-xs">Capital invertido</p>
+                        <p class="text-white font-bold" id="resumen-capital">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-xs">Ganancia deseada</p>
+                        <p class="text-white font-bold" id="resumen-ganancia">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-xs">Monto total deseado</p>
+                        <p class="text-white font-bold text-emerald-400" id="resumen-total">$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-xs">Precio objetivo</p>
+                        <p class="text-white font-bold" id="resumen-objetivo">$0.00</p>
+                    </div>
                 </div>
             </div>
             <div class="flex flex-wrap gap-3 mt-4">
@@ -314,8 +341,8 @@
                         <tr class="text-left text-slate-400 border-b border-slate-700/50">
                             <th class="py-2 px-3 font-medium">Fecha</th>
                             <th class="py-2 px-3 font-medium text-right">Precio</th>
-                            <th class="py-2 px-3 font-medium text-right">Estado RSI</th>
                             <th class="py-2 px-3 font-medium text-right">Valor Inversión</th>
+                            <th class="py-2 px-3 font-medium text-right">Ganancia</th>
                         </tr>
                     </thead>
                     <tbody id="historial-detallado" class="divide-y divide-slate-700/30">
@@ -431,7 +458,7 @@
         }
 
         // ============================================================
-        //  SSE – ACTUALIZACIÓN EN TIEMPO REAL
+        //  SSE – ACTUALIZACIÓN EN TIEMPO REAL (NUEVA LÓGICA)
         // ============================================================
         const estadoConexion = document.getElementById('estado-conexion');
         const selectorMoneda = document.getElementById('selector-moneda-inv');
@@ -439,7 +466,8 @@
         const monedaBadgeConfig = document.getElementById('moneda-badge-config');
         let currentMoneda = 'BTCUSDT';
         let currentCantidad = 0;
-        let currentObjetivo = 0;
+        let currentCapital = 0;
+        let currentGananciaDeseada = 0;
 
         function actualizarSelector(monedas, seleccionada) {
             const current = selectorMoneda.value;
@@ -479,27 +507,32 @@
 
                 currentMoneda = monedaSel;
                 const info = d[monedaSel] || {};
-                const inv = inversiones[monedaSel] || { cantidad: 0, objetivo: 0 };
+                const inv = inversiones[monedaSel] || { cantidad: 0, capital_invertido: 0, ganancia_deseada: 0 };
                 currentCantidad = inv.cantidad || 0;
-                currentObjetivo = inv.objetivo || 0;
+                currentCapital = inv.capital_invertido || 0;
+                currentGananciaDeseada = inv.ganancia_deseada || 0;
 
-                const precio = info.precio_actual || 0;
-                const valorActual = currentCantidad * precio;
-                const ganancia = currentObjetivo > 0 ? ((precio - currentObjetivo) / currentObjetivo) * 100 : 0;
+                const precioActual = info.precio_actual || 0;
+                const valorActual = currentCantidad * precioActual;
+                const gananciaActual = currentCapital > 0 ? ((valorActual - currentCapital) / currentCapital) * 100 : 0;
+                const montoTotalDeseado = currentCapital + currentGananciaDeseada;
 
+                // Actualizar tarjetas
                 document.getElementById('cantidad-inversion').innerText = currentCantidad.toFixed(8);
-                document.getElementById('valor-inversion').innerText = '$' + valorActual.toFixed(2);
-                document.getElementById('precio-objetivo').innerText = '$' + currentObjetivo.toFixed(2);
-                const gpEl = document.getElementById('ganancia-perdida');
-                gpEl.innerText = (ganancia > 0 ? '+' : '') + ganancia.toFixed(2) + '%';
-                gpEl.className = 'text-2xl font-bold ' + (ganancia > 0 ? 'text-emerald-400' : ganancia < 0 ? 'text-red-400' : 'text-slate-400');
+                document.getElementById('capital-invertido').innerText = '$' + currentCapital.toFixed(2);
+                document.getElementById('ganancia-deseada').innerText = '$' + currentGananciaDeseada.toFixed(2);
+                const gaEl = document.getElementById('ganancia-actual');
+                gaEl.innerText = (gananciaActual > 0 ? '+' : '') + gananciaActual.toFixed(2) + '%';
+                gaEl.className = 'text-2xl font-bold ' + (gananciaActual > 0 ? 'text-emerald-400' : gananciaActual < 0 ? 'text-red-400' : 'text-slate-400');
 
-                if (currentObjetivo > 0) {
-                    const progreso = Math.min((precio / currentObjetivo) * 100, 100);
+                // Barra de progreso (hacia el monto total deseado)
+                if (montoTotalDeseado > 0) {
+                    const progreso = Math.min((valorActual / montoTotalDeseado) * 100, 100);
                     document.getElementById('progreso-texto').innerText = progreso.toFixed(1) + '%';
                     document.getElementById('progreso-bar').style.width = progreso + '%';
-                    document.getElementById('objetivo-label').innerText = '$' + currentObjetivo.toFixed(2);
-                    if (precio >= currentObjetivo) {
+                    document.getElementById('label-valor-actual').innerText = '$' + valorActual.toFixed(2);
+                    document.getElementById('label-meta').innerText = '$' + montoTotalDeseado.toFixed(2);
+                    if (valorActual >= montoTotalDeseado) {
                         document.getElementById('progreso-bar').className = 'progress-fill bg-gradient-to-r from-emerald-500 to-green-400';
                     } else {
                         document.getElementById('progreso-bar').className = 'progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400';
@@ -507,20 +540,36 @@
                 } else {
                     document.getElementById('progreso-texto').innerText = '0%';
                     document.getElementById('progreso-bar').style.width = '0%';
-                    document.getElementById('objetivo-label').innerText = '$0';
+                    document.getElementById('label-valor-actual').innerText = '$0.00';
+                    document.getElementById('label-meta').innerText = '$0.00';
                 }
 
-                if (!document.activeElement || (document.activeElement.id !== 'input-cantidad' && document.activeElement.id !== 'input-objetivo')) {
+                // Cargar inputs si no están enfocados
+                if (!document.activeElement || (document.activeElement.id !== 'input-cantidad' && document.activeElement.id !== 'input-ganancia')) {
                     document.getElementById('input-cantidad').value = currentCantidad || '';
-                    document.getElementById('input-objetivo').value = currentObjetivo || '';
+                    document.getElementById('input-ganancia').value = currentGananciaDeseada || '';
                 }
 
+                // Actualizar resumen de inversión (si está visible)
+                const resumen = document.getElementById('resumen-inversion');
+                if (currentCantidad > 0 && currentCapital > 0 && currentGananciaDeseada > 0) {
+                    resumen.classList.remove('hidden');
+                    const precioObj = montoTotalDeseado / currentCantidad;
+                    document.getElementById('resumen-capital').innerText = '$' + currentCapital.toFixed(2);
+                    document.getElementById('resumen-ganancia').innerText = '$' + currentGananciaDeseada.toFixed(2);
+                    document.getElementById('resumen-total').innerText = '$' + montoTotalDeseado.toFixed(2);
+                    document.getElementById('resumen-objetivo').innerText = '$' + precioObj.toFixed(2);
+                } else {
+                    resumen.classList.add('hidden');
+                }
+
+                // Gráficos
                 const hora = info.hora_venezuela || '--:--';
                 const rsi = info.rsi || 50;
 
                 if (priceChartInstance) {
                     priceChartInstance.data.labels.push(hora);
-                    priceChartInstance.data.datasets[0].data.push(precio);
+                    priceChartInstance.data.datasets[0].data.push(precioActual);
                     if (priceChartInstance.data.labels.length > 20) {
                         priceChartInstance.data.labels.shift();
                         priceChartInstance.data.datasets[0].data.shift();
@@ -538,23 +587,18 @@
                     rsiChartInstance.update('none');
                 }
 
+                // Historial detallado (ahora incluye valor y ganancia)
                 const historial = data.historial || [];
                 const tbody = document.getElementById('historial-detallado');
                 tbody.innerHTML = historial.map(h => {
-                    const valorInv = currentCantidad * h.precio;
+                    const valorHist = currentCantidad * h.precio;
+                    const gananciaHist = currentCapital > 0 ? ((valorHist - currentCapital) / currentCapital) * 100 : 0;
                     return `
                         <tr>
                             <td class="py-2 px-3 text-slate-400">${h.fecha}</td>
                             <td class="py-2 px-3 text-right text-white font-medium">$${h.precio.toLocaleString()}</td>
-                            <td class="py-2 px-3 text-right">
-                                <span class="text-xs px-2 py-1 rounded-full 
-                                    ${h.estado === 'Sobrevendido' ? 'bg-blue-500/20 text-blue-400' :
-                                      h.estado === 'Sobrecomprado' ? 'bg-red-500/20 text-red-400' :
-                                      'bg-amber-500/20 text-amber-400'}">
-                                    ${h.estado}
-                                </span>
-                            </td>
-                            <td class="py-2 px-3 text-right text-slate-300">$${valorInv.toFixed(2)}</td>
+                            <td class="py-2 px-3 text-right text-slate-300">$${valorHist.toFixed(2)}</td>
+                            <td class="py-2 px-3 text-right ${gananciaHist >= 0 ? 'text-emerald-400' : 'text-red-400'}">${(gananciaHist > 0 ? '+' : '') + gananciaHist.toFixed(2)}%</td>
                         </tr>
                     `;
                 }).join('') || '<tr><td colspan="4" class="text-center text-slate-500 py-4">No hay datos históricos aún</td></tr>';
@@ -605,12 +649,12 @@
         });
 
         // ============================================================
-        //  FUNCIONES DE INVERSIÓN
+        //  FUNCIONES DE INVERSIÓN (NUEVA LÓGICA)
         // ============================================================
         const mensajeInversion = document.getElementById('mensaje-inversion');
 
-        async function guardarInversion(cantidad, objetivo) {
-            if (cantidad <= 0 || objetivo <= 0) {
+        async function guardarInversion(cantidad, ganancia_deseada) {
+            if (cantidad <= 0 || ganancia_deseada <= 0) {
                 mensajeInversion.innerHTML = '<span class="text-red-400">⚠️ Ambos campos deben ser mayores a 0</span>';
                 return false;
             }
@@ -621,12 +665,18 @@
                     body: JSON.stringify({
                         symbol: currentMoneda,
                         cantidad: cantidad,
-                        objetivo: objetivo
+                        ganancia_deseada: ganancia_deseada
                     })
                 });
                 const data = await resp.json();
                 if (data.status === 'ok') {
                     mensajeInversion.innerHTML = '<span class="text-emerald-400">✅ ' + data.mensaje + '</span>';
+                    // Mostrar resumen con los datos devueltos
+                    document.getElementById('resumen-inversion').classList.remove('hidden');
+                    document.getElementById('resumen-capital').innerText = '$' + data.capital_invertido.toFixed(2);
+                    document.getElementById('resumen-ganancia').innerText = '$' + ganancia_deseada.toFixed(2);
+                    document.getElementById('resumen-total').innerText = '$' + (data.capital_invertido + ganancia_deseada).toFixed(2);
+                    // precio objetivo se actualizará en el SSE
                     return true;
                 } else {
                     mensajeInversion.innerHTML = '<span class="text-red-400">❌ ' + data.mensaje + '</span>';
@@ -640,17 +690,18 @@
 
         document.getElementById('btn-guardar-inversion').addEventListener('click', async function() {
             const cantidad = parseFloat(document.getElementById('input-cantidad').value) || 0;
-            const objetivo = parseFloat(document.getElementById('input-objetivo').value) || 0;
+            const ganancia = parseFloat(document.getElementById('input-ganancia').value) || 0;
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-            await guardarInversion(cantidad, objetivo);
+            await guardarInversion(cantidad, ganancia);
             this.disabled = false;
             this.innerHTML = '<i class="fas fa-save"></i> Guardar';
         });
 
         document.getElementById('btn-limpiar-inversion').addEventListener('click', async function() {
             document.getElementById('input-cantidad').value = '';
-            document.getElementById('input-objetivo').value = '';
+            document.getElementById('input-ganancia').value = '';
+            document.getElementById('resumen-inversion').classList.add('hidden');
             mensajeInversion.innerHTML = '';
             try {
                 await fetch('/api/actualizar_inversion', {
@@ -659,7 +710,7 @@
                     body: JSON.stringify({
                         symbol: currentMoneda,
                         cantidad: 0,
-                        objetivo: 0
+                        ganancia_deseada: 0
                     })
                 });
                 mensajeInversion.innerHTML = '<span class="text-slate-400">🧹 Datos limpiados</span>';
@@ -692,4 +743,4 @@
         });
     </script>
 </body>
-</html>
+</html>                    

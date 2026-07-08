@@ -147,15 +147,56 @@ def analizar_mercado():
             "hora_venezuela": ahora_ve
         })
 
-        # --- ALERTAS AUTOMÁTICAS POR MONEDA ---
-        # Obtener nombre completo y abreviatura
+        # ============================================================
+        #  LÓGICA DE INVERSIÓN (NUEVA)
+        # ============================================================
+        inv = config.inversiones.get(symbol, {})
+        cantidad = inv.get("cantidad", 0)
+        capital = inv.get("capital_invertido", 0)
+        ganancia_deseada = inv.get("ganancia_deseada", 0)
+
+        if cantidad > 0 and capital > 0 and ganancia_deseada > 0:
+            # Calcular automáticamente
+            monto_total_deseado = capital + ganancia_deseada
+            precio_objetivo = monto_total_deseado / cantidad
+
+            valor_actual = cantidad * precio
+            ganancia_actual = ((valor_actual - capital) / capital) * 100
+
+            # Actualizar datos de mercado para mostrar en la página
+            config.datos_mercado[symbol].update({
+                "capital_invertido": capital,
+                "ganancia_deseada": ganancia_deseada,
+                "monto_total_deseado": monto_total_deseado,
+                "precio_objetivo": precio_objetivo,
+                "valor_actual_inversion": valor_actual,
+                "ganancia_actual": ganancia_actual
+            })
+
+            # Comparar con el monto total deseado
+            if valor_actual >= monto_total_deseado and not inv.get("alcanzado", False):
+                nombre_completo = config.NOMBRES_MONEDAS.get(symbol, symbol)
+                abreviatura = symbol.replace('USDT', '')
+                tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
+                mensaje = (
+                    f"🎯 *¡META ALCANZADA en {nombre_completo} ({abreviatura})!*\n"
+                    f"💰 Invertiste: ${capital:,.2f}\n"
+                    f"🎯 Querías ganar: ${ganancia_deseada:,.2f}\n"
+                    f"💵 Tu inversión ahora vale: ${valor_actual:,.2f}\n"
+                    f"📈 Ganancia real: {ganancia_actual:+.2f}%\n"
+                    f"📊 Precio actual: ${precio:,.2f}\n"
+                    f"📉 Tendencia: {tendencia}\n"
+                    f"🕒 Hora local: {ahora_ve}"
+                )
+                enviar_alerta_telegram(mensaje)
+                config.inversiones[symbol]["alcanzado"] = True
+
+        # --- ALERTAS AUTOMÁTICAS (variación y RSI) ---
         nombre_completo = config.NOMBRES_MONEDAS.get(symbol, symbol)
         abreviatura = symbol.replace('USDT', '')
-
-        # Determinar tendencia (ALTA o BAJA)
         tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
 
-        # 2.1 Alerta de variación brusca (umbral VARIACION_ALERTA)
+        # 2.1 Alerta de variación brusca
         if abs(variacion) >= config.VARIACION_ALERTA and not ultima_variacion_alerta[symbol]:
             signo = "+" if variacion > 0 else ""
             mensaje = (
@@ -169,7 +210,7 @@ def analizar_mercado():
         elif abs(variacion) < config.VARIACION_ALERTA:
             ultima_variacion_alerta[symbol] = False
 
-        # 2.2 Alerta de RSI (sobrecompra/sobreventa)
+        # 2.2 Alerta de RSI
         estado_rsi = "Neutral"
         if rsi < config.RSI_SOBREVENTA:
             estado_rsi = "Sobrevendido"
@@ -189,26 +230,6 @@ def analizar_mercado():
             ultimo_estado_rsi[symbol] = estado_rsi
         elif estado_rsi == "Neutral":
             ultimo_estado_rsi[symbol] = None
-
-        # 2.3 Alerta de objetivo de inversión (si está configurado)
-        inv = config.inversiones.get(symbol, {})
-        if inv.get("cantidad", 0) > 0 and inv.get("objetivo", 0) > 0:
-            if precio >= inv["objetivo"] and not inv.get("alcanzado", False):
-                cantidad = inv["cantidad"]
-                valor_actual = cantidad * precio
-                ganancia = ((precio - inv["objetivo"]) / inv["objetivo"]) * 100
-                mensaje = (
-                    f"🎯 *¡OBJETIVO ALCANZADO en {nombre_completo} ({abreviatura})!*\n"
-                    f"💰 Precio actual: ${precio:,.2f}\n"
-                    f"📊 Tu inversión: {cantidad:.8f} {abreviatura}\n"
-                    f"💵 Valor actual: ${valor_actual:,.2f}\n"
-                    f"🎯 Objetivo: ${inv['objetivo']:,.2f}\n"
-                    f"📈 Ganancia: {ganancia:+.2f}%\n"
-                    f"📉 Tendencia: {tendencia}\n"
-                    f"🕒 Hora local: {ahora_ve}"
-                )
-                enviar_alerta_telegram(mensaje)
-                config.inversiones[symbol]["alcanzado"] = True
 
     # 3. Actualizar historial solo para la moneda seleccionada en inversión
     moneda_sel = config.moneda_seleccionada
@@ -231,7 +252,7 @@ def analizar_mercado():
             if len(config.historial_analisis) > HISTORIAL_MAX:
                 config.historial_analisis.pop()
 
-    # 4. Disparar evento SSE para notificar cambios
+    # 4. Disparar evento SSE
     config.actualizacion_event.set()
 
     config.logger.info(f"Datos actualizados para {len(config.MONEDAS)} monedas.")
@@ -242,10 +263,8 @@ def enviar_alerta_manual():
     por Telegram (llamada desde el botón "Enviar alerta").
     """
     ahora_ve = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
-    
-    mensaje = f"📊 *Resumen CryptoAlert*\n"
-    mensaje += f"🕒 Última actualización: {ahora_ve}\n\n"
-    
+    mensaje = f"📊 *Resumen CryptoAlert*\n🕒 Última actualización: {ahora_ve}\n\n"
+
     for symbol in config.MONEDAS:
         datos = config.datos_mercado.get(symbol, {})
         precio = datos.get("precio_actual", 0)
@@ -259,25 +278,21 @@ def enviar_alerta_manual():
     # Añadir inversiones activas
     inversiones_activas = False
     for symbol, inv in config.inversiones.items():
-        if inv["cantidad"] > 0 and inv["objetivo"] > 0:
+        if inv["cantidad"] > 0 and inv["capital_invertido"] > 0 and inv["ganancia_deseada"] > 0:
             inversiones_activas = True
             nombre = config.NOMBRES_MONEDAS.get(symbol, symbol)
             abrev = symbol.replace('USDT', '')
             precio_act = config.datos_mercado.get(symbol, {}).get("precio_actual", 0)
             valor = inv["cantidad"] * precio_act
-            ganancia = ((precio_act - inv["objetivo"]) / inv["objetivo"]) * 100
-            tendencia = "📈 ALTA" if precio_act >= inv["objetivo"] else "📉 BAJA"
+            ganancia = ((valor - inv["capital_invertido"]) / inv["capital_invertido"]) * 100
             mensaje += f"\n💰 *{nombre} ({abrev}) - Inversión:*\n"
-            mensaje += f"  Cantidad: {inv['cantidad']:.8f}\n"
-            mensaje += f"  Valor: ${valor:,.2f}\n"
-            mensaje += f"  Objetivo: ${inv['objetivo']:,.2f}\n"
-            mensaje += f"  Ganancia: {ganancia:+.2f}%\n"
-            mensaje += f"  Tendencia: {tendencia}"
+            mensaje += f"  Capital: ${inv['capital_invertido']:,.2f}\n"
+            mensaje += f"  Ganancia deseada: ${inv['ganancia_deseada']:,.2f}\n"
+            mensaje += f"  Valor actual: ${valor:,.2f}\n"
+            mensaje += f"  Ganancia: {ganancia:+.2f}%"
 
     if not inversiones_activas:
         mensaje += "\n🔹 Sin inversiones configuradas."
-
-    mensaje += f"\n\n🕒 Hora local: {ahora_ve}"
 
     enviar_alerta_telegram(mensaje)
     config.logger.info("Alerta manual enviada.")

@@ -13,12 +13,18 @@ def stream():
     def generador_datos():
         ultima_vez = None
         while True:
+            # Esperar a que haya una actualización (con timeout para no bloquear)
+            config.actualizacion_event.wait(timeout=1.0)
+            # Limpiar el evento para la próxima
+            config.actualizacion_event.clear()
+
+            # Tomar los datos actuales
             actual = config.datos_mercado.get("ultima_actualizacion")
-            # Enviamos datos solo si hay actualización
             if actual != ultima_vez and actual is not None:
                 ultima_vez = actual
                 yield f"data: {json.dumps({'datos': config.datos_mercado, 'historial': list(config.historial_analisis)})}\n\n"
-            time.sleep(1) # Intervalo de refresco para el cliente
+            # Pequeña pausa para no saturar CPU
+            time.sleep(0.01)
     return Response(generador_datos(), mimetype='text/event-stream')
 
 @app.route("/")
@@ -45,7 +51,7 @@ def home():
                     <p id="btc-precio" class="text-2xl font-bold text-emerald-400">$0.00</p>
                 </div>
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                    <p class="text-slate-400 text-sm">Variación</p>
+                    <p class="text-slate-400 text-sm">Variación (vs. día anterior)</p>
                     <p id="variacion-valor" class="text-2xl font-bold">0.00%</p>
                 </div>
                 <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
@@ -76,13 +82,11 @@ def home():
                 document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
                 document.getElementById('estado-sistema').innerText = d.ultima_actualizacion;
 
-                // Lógica de Variación
                 const varEl = document.getElementById('variacion-valor');
                 const v = d.variacion;
                 varEl.innerText = (v > 0 ? '+' : '') + v.toFixed(2) + '%';
                 varEl.className = "text-2xl font-bold " + (v > 0 ? "text-emerald-400" : v < 0 ? "text-red-400" : "text-slate-400");
 
-                // Historial
                 const lista = document.getElementById('historial-lista');
                 lista.innerHTML = data.historial.map(h => `
                     <div class="py-3 flex justify-between text-sm">
@@ -91,6 +95,14 @@ def home():
                         <span class="text-slate-400">${h.estado}</span>
                     </div>
                 `).join('');
+            };
+            // Manejo de errores (reconexión automática)
+            source.onerror = (e) => {
+                document.getElementById('estado-sistema').innerText = '⚠️ Error de conexión, reintentando...';
+                source.close();
+                setTimeout(() => {
+                    new EventSource('/api/stream');
+                }, 3000);
             };
         </script>
     </body>

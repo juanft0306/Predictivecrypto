@@ -61,7 +61,14 @@ for moneda in MONEDAS:
         "rsi": 50.0,
         "ultima_actualizacion": "N/A",
         "hora_venezuela": "--:--",
-        "nombre": NOMBRES_MONEDAS.get(moneda, moneda)
+        "nombre": NOMBRES_MONEDAS.get(moneda, moneda),
+        # Campos adicionales para inversión (se actualizan en cada ciclo)
+        "capital_invertido": 0.0,
+        "ganancia_deseada": 0.0,
+        "monto_total_deseado": 0.0,
+        "precio_objetivo": 0.0,
+        "valor_actual_inversion": 0.0,
+        "ganancia_actual": 0.0
     }
 
 # Historial de análisis (solo para la moneda seleccionada en inversión)
@@ -76,13 +83,14 @@ RSI_SOBRECOMPRA = 70
 VARIACION_ALERTA = 5.0   # porcentaje
 
 # ============================================================
-#  DATOS DE INVERSIÓN (por moneda)
+#  DATOS DE INVERSIÓN (por moneda) - NUEVA ESTRUCTURA
 # ============================================================
 inversiones = {}
 for moneda in MONEDAS:
     inversiones[moneda] = {
-        "cantidad": 0.0,
-        "objetivo": 0.0,
+        "cantidad": 0.0,           # Cantidad de la moneda
+        "capital_invertido": 0.0,  # Capital invertido (se calcula con precio actual)
+        "ganancia_deseada": 0.0,   # Ganancia deseada en USD
         "alcanzado": False
     }
 

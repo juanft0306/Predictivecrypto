@@ -2,7 +2,7 @@ import os
 import json
 import time
 from threading import Thread
-from flask import Flask, render_template_string, Response
+from flask import Flask, render_template_string, Response, jsonify, request
 import bot
 import config
 
@@ -13,19 +13,24 @@ def stream():
     def generador_datos():
         ultima_vez = None
         while True:
-            # Esperar a que haya una actualización (con timeout para no bloquear)
             config.actualizacion_event.wait(timeout=1.0)
-            # Limpiar el evento para la próxima
             config.actualizacion_event.clear()
-
-            # Tomar los datos actuales
             actual = config.datos_mercado.get("ultima_actualizacion")
             if actual != ultima_vez and actual is not None:
                 ultima_vez = actual
                 yield f"data: {json.dumps({'datos': config.datos_mercado, 'historial': list(config.historial_analisis)})}\n\n"
-            # Pequeña pausa para no saturar CPU
             time.sleep(0.01)
     return Response(generador_datos(), mimetype='text/event-stream')
+
+@app.route("/api/enviar_alerta", methods=['POST'])
+def enviar_alerta():
+    """Endpoint para enviar alerta manual desde el botón."""
+    try:
+        bot.enviar_alerta_manual()
+        return jsonify({"status": "ok", "mensaje": "Alerta enviada correctamente"})
+    except Exception as e:
+        config.logger.error(f"Error en /api/enviar_alerta: {e}")
+        return jsonify({"status": "error", "mensaje": str(e)}), 500
 
 @app.route("/")
 def home():
@@ -60,9 +65,14 @@ def home():
                 </div>
             </div>
 
-            <div class="text-right mb-6 text-xs text-slate-500">
-                <p>Estado del sistema: <span id="estado-sistema" class="text-indigo-300">Conectando...</span></p>
-                <p>Hora local (Venezuela): <span id="hora-venezuela">--:--</span></p>
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-right text-xs text-slate-500">
+                    <p>Estado del sistema: <span id="estado-sistema" class="text-indigo-300">Conectando...</span></p>
+                    <p>Hora local (Venezuela): <span id="hora-venezuela">--:--</span></p>
+                </div>
+                <button id="btn-alerta" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                    📨 Enviar alerta a Telegram
+                </button>
             </div>
             
             <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700">
@@ -104,6 +114,26 @@ def home():
                     new EventSource('/api/stream');
                 }, 3000);
             };
+
+            // Botón de alerta manual
+            document.getElementById('btn-alerta').addEventListener('click', async function() {
+                this.disabled = true;
+                this.innerText = 'Enviando...';
+                try {
+                    const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
+                    const data = await resp.json();
+                    if (data.status === 'ok') {
+                        alert('✅ ' + data.mensaje);
+                    } else {
+                        alert('❌ ' + data.mensaje);
+                    }
+                } catch (err) {
+                    alert('❌ Error al enviar la alerta');
+                } finally {
+                    this.disabled = false;
+                    this.innerText = '📨 Enviar alerta a Telegram';
+                }
+            });
         </script>
     </body>
     </html>

@@ -1,5 +1,17 @@
 import os
 import threading
+import logging
+from zoneinfo import ZoneInfo
+
+# ============================================================
+#  LOGGING
+# ============================================================
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 # ============================================================
 #  CREDENCIALES DE TELEGRAM (OBLIGATORIAS DESDE ENTORNO)
@@ -13,6 +25,11 @@ if not CHAT_ID_TELEGRAM:
     raise EnvironmentError("❌ Falta CHAT_ID_TELEGRAM en variables de entorno")
 
 # ============================================================
+#  ZONA HORARIA (Venezuela)
+# ============================================================
+ZONA_VE = ZoneInfo("America/Caracas")
+
+# ============================================================
 #  ALMACENAMIENTO CENTRAL EN MEMORIA
 # ============================================================
 datos_mercado = {
@@ -23,7 +40,12 @@ datos_mercado = {
     "hora_venezuela": "--:--"
 }
 
-historial_analisis = []   # Máximo 5 entradas (se controla en bot.py)
+historial_analisis = []   # Máximo 5 entradas
 
 # Evento para notificar cambios (usado en SSE)
 actualizacion_event = threading.Event()
+
+# Umbrales para alertas automáticas
+RSI_SOBREVENTA = 30
+RSI_SOBRECOMPRA = 70
+VARIACION_ALERTA = 5.0   # porcentaje

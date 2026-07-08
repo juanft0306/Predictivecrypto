@@ -12,7 +12,6 @@ def enviar_alerta_telegram(mensaje):
         print("❌ Error al enviar a Telegram:", e, flush=True)
 
 def analizar_mercado():
-    # SOLUCIÓN: Usamos Binance.US (permitido para IPs de Render) y MEXC como respaldo
     endpoints = [
         "https://api.binance.us/api/v3/klines",
         "https://api.mexc.com/api/v3/klines"
@@ -21,14 +20,13 @@ def analizar_mercado():
     respuesta = None
     ultimo_error = ""
     
-    # Intentar conectarse a las nuevas APIs que no bloquean a Render
     for url in endpoints:
         try:
             url_completa = f"{url}?symbol=BTCUSDT&interval=1d&limit=15"
-            respuesta = requests.get(url_completa, timeout=10)
+            respuesta = requests.get(url_completa, timeout=8)
             if respuesta.status_code == 200:
                 print(f"✅ Conectado exitosamente a: {url}", flush=True)
-                break  # Éxito, salimos del bucle
+                break
             else:
                 ultimo_error = f"HTTP {respuesta.status_code} ({url.split('//')[1].split('/')[0]})"
         except Exception as e:
@@ -67,12 +65,10 @@ def analizar_mercado():
         elif rsi > 70:
             estado_web = "⚠️ Sobrecomprado"
 
-        # Guardar datos en la memoria compartida
         config.datos_mercado["precio_actual"] = precio_actual
         config.datos_mercado["rsi"] = rsi
         config.datos_mercado["ultima_actualizacion"] = ahora
 
-        # Actualizar historial
         if not config.historial_analisis or config.historial_analisis[0]["precio"] != precio_actual:
             config.historial_analisis.insert(0, {
                 "fecha": ahora,
@@ -83,9 +79,8 @@ def analizar_mercado():
             if len(config.historial_analisis) > 10:
                 config.historial_analisis.pop()
 
-        print(f"✅ Análisis a las {ahora}. BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
+        print(f"📊 Análisis (10s) -> BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
 
-        # Disparador de alertas a Telegram
         if rsi < 30:
             reporte = f"=== ALERTAS CRIPTO ===\nBitcoin: ${precio_actual:,.2f} USD\nRSI: {rsi:.2f}\n--------------------\n💡 SEÑAL: SOBREVENDIDO."
             enviar_alerta_telegram(reporte)
@@ -99,8 +94,9 @@ def analizar_mercado():
         print(f"❌ Error procesando los datos: {e}", flush=True)
 
 def bucle_bot():
-    print("🤖 Iniciando bucle de análisis secundario (Frecuencia: 30s)...", flush=True)
+    # CAMBIO: Ahora ejecuta el ciclo cada 10 segundos
+    print("🤖 Iniciando bucle de análisis secundario (Frecuencia: 10s)...", flush=True)
     while True:
         analizar_mercado()
-        time.sleep(30)
-                
+        time.sleep(10)
+                                 

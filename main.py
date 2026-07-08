@@ -13,7 +13,7 @@ def stream():
     def generador_datos():
         ultima_vez = None
         while True:
-            config.actualizacion_event.wait(timeout=1.0)
+            config.actualizacion_event.wait(timeout=0.5)  # respuesta rápida
             config.actualizacion_event.clear()
             actual = config.datos_mercado.get("ultima_actualizacion")
             if actual != ultima_vez and actual is not None:
@@ -36,8 +36,6 @@ def home():
     return render_template('index.html')
 
 if __name__ == "__main__":
-    # Iniciar el bot en un hilo daemon
     Thread(target=bot.bucle_bot, daemon=True).start()
-    # Puerto para Render o local
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)

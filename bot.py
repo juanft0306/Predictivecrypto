@@ -162,7 +162,7 @@ def analizar_mercado():
                 f"📊 *{nombre_completo} ({abreviatura}) - Variación significativa*\n"
                 f"💰 Precio: ${precio:,.2f}\n"
                 f"📈 Cambio 24h: {signo}{variacion:.2f}% ({tendencia})\n"
-                f"🕒 Hora: {ahora_ve}"
+                f"🕒 Hora local: {ahora_ve}"
             )
             enviar_alerta_telegram(mensaje)
             ultima_variacion_alerta[symbol] = True
@@ -183,7 +183,7 @@ def analizar_mercado():
                 f"📊 RSI: {rsi:.2f} ({estado_rsi})\n"
                 f"💰 Precio: ${precio:,.2f}\n"
                 f"📈 Tendencia: {tendencia}\n"
-                f"🕒 Hora: {ahora_ve}"
+                f"🕒 Hora local: {ahora_ve}"
             )
             enviar_alerta_telegram(mensaje)
             ultimo_estado_rsi[symbol] = estado_rsi
@@ -205,7 +205,7 @@ def analizar_mercado():
                     f"🎯 Objetivo: ${inv['objetivo']:,.2f}\n"
                     f"📈 Ganancia: {ganancia:+.2f}%\n"
                     f"📉 Tendencia: {tendencia}\n"
-                    f"🕒 Hora: {ahora_ve}"
+                    f"🕒 Hora local: {ahora_ve}"
                 )
                 enviar_alerta_telegram(mensaje)
                 config.inversiones[symbol]["alcanzado"] = True
@@ -241,7 +241,11 @@ def enviar_alerta_manual():
     Envía un resumen completo de todas las monedas y las inversiones activas
     por Telegram (llamada desde el botón "Enviar alerta").
     """
-    mensaje = "📊 *Resumen CryptoAlert*\n\n"
+    ahora_ve = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
+    
+    mensaje = f"📊 *Resumen CryptoAlert*\n"
+    mensaje += f"🕒 Última actualización: {ahora_ve}\n\n"
+    
     for symbol in config.MONEDAS:
         datos = config.datos_mercado.get(symbol, {})
         precio = datos.get("precio_actual", 0)
@@ -273,8 +277,7 @@ def enviar_alerta_manual():
     if not inversiones_activas:
         mensaje += "\n🔹 Sin inversiones configuradas."
 
-    ahora = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
-    mensaje += f"\n\n🕒 Última actualización: {ahora}"
+    mensaje += f"\n\n🕒 Hora local: {ahora_ve}"
 
     enviar_alerta_telegram(mensaje)
     config.logger.info("Alerta manual enviada.")

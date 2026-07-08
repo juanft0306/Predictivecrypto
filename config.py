@@ -30,21 +30,41 @@ if not CHAT_ID_TELEGRAM:
 ZONA_VE = ZoneInfo("America/Caracas")
 
 # ============================================================
-#  DATOS DE MERCADO (compartidos)
+#  LISTA DE MONEDAS A SEGUIR
 # ============================================================
-datos_mercado = {
-    "precio_actual": 0.0,
-    "rsi": 50.0,
-    "variacion": 0.0,
-    "ultima_actualizacion": "N/A",
-    "hora_venezuela": "--:--",
-    # Campos de inversión
-    "cantidad_btc": 0.0,
-    "precio_objetivo": 0.0,
-    "valor_inversion": 0.0,
-    "ganancia_perdida": 0.0
+MONEDAS = [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "TRXUSDT"
+]
+
+NOMBRES_MONEDAS = {
+    "BTCUSDT": "Bitcoin",
+    "ETHUSDT": "Ethereum",
+    "BNBUSDT": "BNB Chain",
+    "SOLUSDT": "Solana",
+    "XRPUSDT": "XRP",
+    "TRXUSDT": "TRON"
 }
 
+# ============================================================
+#  ALMACENAMIENTO DE DATOS DE MERCADO (por moneda)
+# ============================================================
+datos_mercado = {}
+for moneda in MONEDAS:
+    datos_mercado[moneda] = {
+        "precio_actual": 0.0,
+        "variacion": 0.0,
+        "rsi": 50.0,
+        "ultima_actualizacion": "N/A",
+        "hora_venezuela": "--:--",
+        "nombre": NOMBRES_MONEDAS.get(moneda, moneda)
+    }
+
+# Historial de análisis (solo para la moneda seleccionada en inversión)
 historial_analisis = []   # Máximo 5 entradas
 
 # Evento SSE
@@ -53,11 +73,18 @@ actualizacion_event = threading.Event()
 # Umbrales de alerta
 RSI_SOBREVENTA = 30
 RSI_SOBRECOMPRA = 70
-VARIACION_ALERTA = 5.0
+VARIACION_ALERTA = 5.0   # porcentaje
 
 # ============================================================
-#  DATOS DE INVERSIÓN (persistencia en memoria)
+#  DATOS DE INVERSIÓN (por moneda)
 # ============================================================
-cantidad_btc = 0.0
-precio_objetivo = 0.0
-objetivo_alcanzado = False   # Evita notificaciones duplicadas
+inversiones = {}
+for moneda in MONEDAS:
+    inversiones[moneda] = {
+        "cantidad": 0.0,
+        "objetivo": 0.0,
+        "alcanzado": False
+    }
+
+# Moneda seleccionada actualmente en la página de inversión
+moneda_seleccionada = "BTCUSDT"

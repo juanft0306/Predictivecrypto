@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        * { font-family: 'Inter', sans-serif; }
+        * {
+            font-family: 'Inter', sans-serif;
+        }
         body {
             background: radial-gradient(ellipse at top, #0f172a, #020617);
             min-height: 100vh;
@@ -27,8 +29,12 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
             border-color: rgba(99, 102, 241, 0.3);
         }
-        .price-glow { text-shadow: 0 0 40px rgba(52, 211, 153, 0.2); }
-        .badge-pulse { animation: pulse 2s infinite; }
+        .price-glow {
+            text-shadow: 0 0 40px rgba(52, 211, 153, 0.2);
+        }
+        .badge-pulse {
+            animation: pulse 2s infinite;
+        }
         @keyframes pulse {
             0% { opacity: 0.7; }
             50% { opacity: 1; }
@@ -42,7 +48,9 @@
             transform: scale(1.02);
             box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
         }
-        .btn-gradient:active { transform: scale(0.98); }
+        .btn-gradient:active {
+            transform: scale(0.98);
+        }
         .historico-item {
             transition: all 0.2s ease;
             border-left: 3px solid transparent;
@@ -52,9 +60,15 @@
             border-left-color: #6366f1;
             padding-left: 0.5rem;
         }
-        .rsi-neutral { color: #fbbf24; }
-        .rsi-sobrevendido { color: #60a5fa; }
-        .rsi-sobrecomprado { color: #f87171; }
+        .rsi-neutral {
+            color: #fbbf24;
+        }
+        .rsi-sobrevendido {
+            color: #60a5fa;
+        }
+        .rsi-sobrecomprado {
+            color: #f87171;
+        }
         .estado-badge {
             background: rgba(99, 102, 241, 0.15);
             border: 1px solid rgba(99, 102, 241, 0.2);
@@ -64,23 +78,37 @@
             font-weight: 600;
             color: #a5b4fc;
         }
-        .statu-text { color: #94a3b8; font-size: 0.75rem; }
-        input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+        .statu-text {
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+        .nav-link {
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #a5b4fc;
+        }
+        .nav-link.active {
+            color: #818cf8;
+            border-bottom: 2px solid #818cf8;
+        }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
 
-        <!-- HEADER -->
+        <!-- HEADER / NAVEGACIÓN -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
+            <div class="flex items-center gap-4">
                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                     <i class="fas fa-chart-line text-indigo-400 mr-2"></i>CryptoAlert
                 </h1>
-                <p class="text-slate-400 text-sm mt-1 flex items-center gap-2">
-                    <span class="inline-block w-2 h-2 bg-emerald-400 rounded-full badge-pulse"></span>
-                    Streaming en tiempo real
-                </p>
+                <span class="text-slate-500 hidden sm:inline">|</span>
+                <div class="flex gap-4 text-sm">
+                    <a href="/" class="nav-link active">Dashboard</a>
+                    <a href="/inversion" class="nav-link">Mi Inversión</a>
+                </div>
             </div>
             <div class="flex items-center gap-3 flex-wrap">
                 <span class="estado-badge">
@@ -95,35 +123,54 @@
         <!-- PRECIO PRINCIPAL -->
         <div class="glass-card rounded-3xl p-8 mb-8 text-center">
             <p class="text-slate-400 text-sm uppercase tracking-wider mb-1">Bitcoin / USDT</p>
-            <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">$0.00</div>
+            <div class="text-5xl md:text-6xl font-black price-glow text-emerald-400" id="btc-precio">
+                $0.00
+            </div>
             <div class="flex justify-center items-center gap-4 mt-2 text-sm flex-wrap">
-                <span class="statu-text"><i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span></span>
+                <span class="statu-text">
+                    <i class="far fa-clock mr-1"></i> <span id="hora-venezuela">--:--</span>
+                </span>
                 <span class="text-slate-600">|</span>
-                <span class="statu-text"><i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span></span>
+                <span class="statu-text">
+                    <i class="fas fa-sync-alt text-xs mr-1"></i> <span id="estado-sistema">Conectando...</span>
+                </span>
                 <span class="text-slate-600">|</span>
-                <span class="statu-text text-emerald-400/70"><i class="fas fa-bolt text-xs mr-1"></i> Cada 10s</span>
+                <span class="statu-text text-emerald-400/70">
+                    <i class="fas fa-bolt text-xs mr-1"></i> Cada 10s
+                </span>
             </div>
         </div>
 
         <!-- 3 TARJETAS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Precio actual (detalle) -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-indigo-500/20 rounded-lg"><i class="fas fa-bitcoin-sign text-indigo-400 text-xl"></i></div>
+                    <div class="p-2 bg-indigo-500/20 rounded-lg">
+                        <i class="fas fa-bitcoin-sign text-indigo-400 text-xl"></i>
+                    </div>
                     <span class="text-slate-400 text-sm font-medium">Precio</span>
                 </div>
                 <div class="text-2xl font-bold text-white" id="btc-precio-detalle">$0.00</div>
             </div>
+
+            <!-- Variación (24h) -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-emerald-500/20 rounded-lg"><i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i></div>
+                    <div class="p-2 bg-emerald-500/20 rounded-lg">
+                        <i class="fas fa-arrow-trend-up text-emerald-400 text-xl"></i>
+                    </div>
                     <span class="text-slate-400 text-sm font-medium">Variación (24h)</span>
                 </div>
                 <div class="text-2xl font-bold" id="variacion-valor">0.00%</div>
             </div>
+
+            <!-- RSI -->
             <div class="glass-card rounded-2xl p-6">
                 <div class="flex items-center gap-3 mb-2">
-                    <div class="p-2 bg-amber-500/20 rounded-lg"><i class="fas fa-wave-square text-amber-400 text-xl"></i></div>
+                    <div class="p-2 bg-amber-500/20 rounded-lg">
+                        <i class="fas fa-wave-square text-amber-400 text-xl"></i>
+                    </div>
                     <span class="text-slate-400 text-sm font-medium">RSI (14 días)</span>
                 </div>
                 <div class="text-2xl font-bold text-amber-400" id="rsi-valor">50.00</div>
@@ -138,58 +185,16 @@
                 </h2>
                 <span class="text-xs text-slate-500">Últimas 5 actualizaciones</span>
             </div>
-            <div id="historial-lista" class="divide-y divide-slate-700/50"></div>
-        </div>
-
-        <!-- SECCIÓN DE SEGUIMIENTO DE INVERSIÓN -->
-        <div class="glass-card rounded-3xl p-6 mt-8">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                <i class="fas fa-coins text-emerald-400"></i> Seguimiento de Inversión
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" id="inversion-status">
-                <div>
-                    <p class="text-slate-400 text-xs uppercase tracking-wider">Cantidad BTC</p>
-                    <p class="text-xl font-bold text-white" id="cantidad-btc">0.00000000</p>
-                </div>
-                <div>
-                    <p class="text-slate-400 text-xs uppercase tracking-wider">Valor Actual</p>
-                    <p class="text-xl font-bold text-white" id="valor-inversion">$0.00</p>
-                </div>
-                <div>
-                    <p class="text-slate-400 text-xs uppercase tracking-wider">Ganancia / Pérdida</p>
-                    <p class="text-xl font-bold" id="ganancia-perdida">0.00%</p>
-                </div>
+            <div id="historial-lista" class="divide-y divide-slate-700/50">
+                <!-- JavaScript llena esto -->
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Cantidad de BTC</label>
-                    <input type="number" id="input-cantidad" step="0.00000001" min="0"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                           placeholder="Ej: 0.00006790">
-                </div>
-                <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Precio Objetivo (USD)</label>
-                    <input type="number" id="input-objetivo" step="0.01" min="0"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                           placeholder="Ej: 68000">
-                </div>
-            </div>
-            <div class="flex gap-3 mt-4">
-                <button id="btn-guardar-inversion" class="btn-gradient text-white font-bold py-2 px-6 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                    <i class="fas fa-save"></i> Guardar Inversión
-                </button>
-                <button id="btn-limpiar-inversion" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                    <i class="fas fa-trash"></i> Limpiar
-                </button>
-            </div>
-            <div id="mensaje-inversion" class="mt-3 text-sm"></div>
         </div>
 
     </div>
 
     <script>
         // ============================================================
-        //  SSE Y ACTUALIZACIÓN DE DATOS
+        //  MANEJO DE SSE Y ACTUALIZACIÓN DE DATOS
         // ============================================================
         const estadoElement = document.getElementById('estado-sistema');
         let ultimoEstado = 'Conectando...';
@@ -207,10 +212,11 @@
             document.getElementById('rsi-valor').innerText = d.rsi.toFixed(2);
             document.getElementById('hora-venezuela').innerText = d.hora_venezuela;
 
+            // Actualizar estado con la hora UTC
             ultimoEstado = d.ultima_actualizacion;
             estadoElement.innerText = ultimoEstado;
 
-            // Variación
+            // Variación con color
             const varEl = document.getElementById('variacion-valor');
             const v = d.variacion;
             const signo = v > 0 ? '+' : '';
@@ -231,37 +237,16 @@
                     </div>
                 `;
             }).join('');
-
-            // ============================================================
-            //  ACTUALIZAR SECCIÓN DE INVERSIÓN
-            // ============================================================
-            if (d.cantidad_btc && d.cantidad_btc > 0) {
-                document.getElementById('cantidad-btc').innerText = d.cantidad_btc.toFixed(8);
-                document.getElementById('valor-inversion').innerText = '$' + d.valor_inversion.toFixed(2);
-                const gp = d.ganancia_perdida;
-                const gpEl = document.getElementById('ganancia-perdida');
-                gpEl.innerText = (gp > 0 ? '+' : '') + gp.toFixed(2) + '%';
-                gpEl.className = 'text-xl font-bold ' + (gp > 0 ? 'text-emerald-400' : gp < 0 ? 'text-red-400' : 'text-slate-400');
-                // Cargar valores en inputs (si no están siendo editados)
-                if (!document.activeElement || (document.activeElement.id !== 'input-cantidad' && document.activeElement.id !== 'input-objetivo')) {
-                    document.getElementById('input-cantidad').value = d.cantidad_btc;
-                    document.getElementById('input-objetivo').value = d.precio_objetivo;
-                }
-            } else {
-                document.getElementById('cantidad-btc').innerText = '0.00000000';
-                document.getElementById('valor-inversion').innerText = '$0.00';
-                const gpEl = document.getElementById('ganancia-perdida');
-                gpEl.innerText = '0.00%';
-                gpEl.className = 'text-xl font-bold text-slate-400';
-            }
         };
 
+        // Manejo de errores: reconexión automática sin perder estado
         source.onerror = (e) => {
             if (ultimoEstado === 'Conectando...' || ultimoEstado === 'N/A') {
                 estadoElement.innerText = '⚠️ Esperando conexión...';
             } else {
                 estadoElement.innerText = '🔄 Reconectando... (último dato: ' + ultimoEstado + ')';
             }
+            // No cerramos la conexión manualmente; el navegador ya lo intenta de nuevo automáticamente.
         };
 
         // ============================================================
@@ -280,58 +265,6 @@
             } finally {
                 this.disabled = false;
                 this.innerHTML = original;
-            }
-        });
-
-        // ============================================================
-        //  GUARDAR / LIMPIAR INVERSIÓN
-        // ============================================================
-        const mensajeInversion = document.getElementById('mensaje-inversion');
-
-        document.getElementById('btn-guardar-inversion').addEventListener('click', async function() {
-            const cantidad = parseFloat(document.getElementById('input-cantidad').value) || 0;
-            const objetivo = parseFloat(document.getElementById('input-objetivo').value) || 0;
-
-            if (cantidad <= 0 || objetivo <= 0) {
-                mensajeInversion.innerHTML = '<span class="text-red-400">⚠️ Ambos campos deben ser mayores a 0</span>';
-                return;
-            }
-
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-            try {
-                const resp = await fetch('/api/actualizar_inversion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cantidad_btc: cantidad, precio_objetivo: objetivo })
-                });
-                const data = await resp.json();
-                if (data.status === 'ok') {
-                    mensajeInversion.innerHTML = '<span class="text-emerald-400">✅ ' + data.mensaje + '</span>';
-                } else {
-                    mensajeInversion.innerHTML = '<span class="text-red-400">❌ ' + data.mensaje + '</span>';
-                }
-            } catch (err) {
-                mensajeInversion.innerHTML = '<span class="text-red-400">❌ Error al guardar</span>';
-            } finally {
-                this.disabled = false;
-                this.innerHTML = '<i class="fas fa-save"></i> Guardar Inversión';
-            }
-        });
-
-        document.getElementById('btn-limpiar-inversion').addEventListener('click', async function() {
-            document.getElementById('input-cantidad').value = '';
-            document.getElementById('input-objetivo').value = '';
-            mensajeInversion.innerHTML = '';
-            try {
-                await fetch('/api/actualizar_inversion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cantidad_btc: 0, precio_objetivo: 0 })
-                });
-                mensajeInversion.innerHTML = '<span class="text-slate-400">🧹 Datos limpiados</span>';
-            } catch (err) {
-                mensajeInversion.innerHTML = '<span class="text-red-400">❌ Error al limpiar</span>';
             }
         });
     </script>

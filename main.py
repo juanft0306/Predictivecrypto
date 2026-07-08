@@ -8,23 +8,20 @@ import config
 
 app = Flask(__name__)
 
-# NUEVO: Endpoint de Streaming en Tiempo Real (Server-Sent Events)
 @app.route("/api/stream")
 def stream():
     def generador_datos():
         ultima_vez = None
         while True:
             actual = config.datos_mercado.get("ultima_actualizacion")
-            # Solo envía datos a tu teléfono si detecta que el bot consiguió precios nuevos
             if actual != ultima_vez and actual is not None:
                 ultima_vez = actual
                 paquete = {
                     "datos": config.datos_mercado,
                     "historial": list(config.historial_analisis)
                 }
-                # El formato "data: {json}\n\n" es estricto para que el navegador lo entienda
                 yield f"data: {json.dumps(paquete)}\n\n"
-            time.sleep(0.5) # El servidor revisa su propia memoria interna cada 0.5s
+            time.sleep(0.5)
             
     return Response(generador_datos(), mimetype='text/event-stream')
 
@@ -63,9 +60,14 @@ def home():
                 </div>
             </div>
 
-            <p class="text-xs text-slate-500 mb-8 text-right tracking-tight">
-                Estado del sistema: <span id="actualizacion-tiempo" class="text-slate-300 font-medium animate-pulse">Abriendo túnel SSE...</span>
-            </p>
+            <div class="text-right mb-8">
+                <p class="text-xs text-slate-500 tracking-tight">
+                    Estado del sistema: <span id="actualizacion-tiempo" class="text-slate-300 font-medium animate-pulse">Abriendo túnel SSE...</span>
+                </p>
+                <p class="text-xs text-indigo-400 mt-1 tracking-tight font-semibold">
+                    Hora local (Venezuela): <span id="hora-venezuela" class="text-indigo-300">Calculando...</span>
+                </p>
+            </div>
 
             <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center">
@@ -82,15 +84,14 @@ def home():
                 return {
                     precio_actual: d.precio_actual || 0,
                     rsi: d.rsi || 50.0,
-                    ultima_actualizacion: d.ultima_actualizacion || "Conectado"
+                    ultima_actualizacion: d.ultima_actualizacion || "Conectado",
+                    hora_venezuela: d.hora_venezuela || "--:--:--"
                 };
             }
 
-            // MAGIA DE TIEMPO REAL: Abre un túnel permanente con tu servidor Render
             const origenEventos = new EventSource('/api/stream');
 
             origenEventos.onmessage = function(evento) {
-                // Se ejecuta exactamente en el milisegundo en que llega un nuevo dato
                 const resultado = JSON.parse(evento.data);
                 const datos = network_clean(resultado.datos);
                 const historial = resultado.historial;
@@ -102,6 +103,7 @@ def home():
                 
                 document.getElementById('rsi-valor').innerText = datos.rsi.toFixed(2);
                 document.getElementById('actualizacion-tiempo').innerText = datos.ultima_actualizacion;
+                document.getElementById('hora-venezuela').innerText = datos.hora_venezuela;
                 document.getElementById('actualizacion-tiempo').classList.remove('animate-pulse');
 
                 const rsiVal = datos.rsi;
@@ -162,3 +164,4 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+    

@@ -51,7 +51,7 @@ NOMBRES_MONEDAS = {
 }
 
 # ============================================================
-#  ALMACENAMIENTO DE DATOS DE MERCADO (por moneda)
+#  ALMACENAMIENTO DE DATOS DE MERCADO
 # ============================================================
 datos_mercado = {}
 for moneda in MONEDAS:
@@ -62,7 +62,6 @@ for moneda in MONEDAS:
         "ultima_actualizacion": "N/A",
         "hora_venezuela": "--:--",
         "nombre": NOMBRES_MONEDAS.get(moneda, moneda),
-        # Campos adicionales para inversión (se actualizan en cada ciclo)
         "capital_invertido": 0.0,
         "ganancia_deseada": 0.0,
         "monto_total_deseado": 0.0,
@@ -71,28 +70,23 @@ for moneda in MONEDAS:
         "ganancia_actual": 0.0
     }
 
-# Historial de análisis (solo para la moneda seleccionada en inversión)
-historial_analisis = []   # Máximo 5 entradas
-
-# Evento SSE
+historial_analisis = []
 actualizacion_event = threading.Event()
 
-# Umbrales de alerta
 RSI_SOBREVENTA = 30
 RSI_SOBRECOMPRA = 70
-VARIACION_ALERTA = 5.0   # porcentaje
+VARIACION_ALERTA = 5.0
 
 # ============================================================
-#  DATOS DE INVERSIÓN (por moneda) - NUEVA ESTRUCTURA
+#  DATOS DE INVERSIÓN (NUEVA ESTRUCTURA)
 # ============================================================
 inversiones = {}
 for moneda in MONEDAS:
     inversiones[moneda] = {
-        "cantidad": 0.0,           # Cantidad de la moneda
-        "capital_invertido": 0.0,  # Capital invertido (se calcula con precio actual)
-        "ganancia_deseada": 0.0,   # Ganancia deseada en USD
+        "cantidad": 0.0,
+        "capital_invertido": 0.0,   # Ahora lo ingresa el usuario
+        "ganancia_deseada": 0.0,
         "alcanzado": False
     }
 
-# Moneda seleccionada actualmente en la página de inversión
 moneda_seleccionada = "BTCUSDT"

@@ -23,7 +23,6 @@ def analizar_mercado():
     for url in endpoints:
         try:
             url_completa = f"{url}?symbol=BTCUSDT&interval=1d&limit=15"
-            # MEJORA 1: Reducimos el timeout a 2.5s para no congelar el bucle si la red está lenta
             respuesta = requests.get(url_completa, timeout=2.5)
             if respuesta.status_code == 200:
                 break
@@ -79,7 +78,7 @@ def analizar_mercado():
             if len(config.historial_analisis) > 10:
                 config.historial_analisis.pop()
 
-        print(f"📊 Análisis (10s) -> BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
+        print(f"⚡ Tiempo Real -> BTC: ${precio_actual} | RSI: {rsi:.2f}", flush=True)
 
         if rsi < 30:
             reporte = f"=== ALERTAS CRIPTO ===\nBitcoin: ${precio_actual:,.2f} USD\nRSI: {rsi:.2f}\n--------------------\n💡 SEÑAL: SOBREVENDIDO."
@@ -94,21 +93,7 @@ def analizar_mercado():
         print(f"❌ Error procesando los datos: {e}", flush=True)
 
 def bucle_bot():
-    print("🤖 Iniciando bucle de análisis secundario (Frecuencia estricta: 10s)...", flush=True)
+    print("🤖 Iniciando motor de análisis en TIEMPO REAL...", flush=True)
     while True:
-        # MEJORA 2: Tomamos una captura del tiempo exacto antes de empezar
-        tiempo_inicio = time.time()
-        
         analizar_mercado()
-        
-        # Calculamos cuánto tiempo tomó la ejecución del código y la red
-        tiempo_transcurrido = time.time() - tiempo_inicio
-        
-        # El tiempo de espera será lo que falte para llegar a los 10 segundos
-        tiempo_espera = 10 - tiempo_transcurrido
-        
-        # Control de seguridad: si la red tardó más de 10s, esperamos al menos 1s para no saturar
-        if tiempo_espera < 1:
-            tiempo_espera = 1
-            
-        time.sleep(tiempo_espera)
+        time.sleep(3) # Pausa de 3s requerida por los Exchanges para no bloquear la IP

@@ -1,0 +1,25 @@
+# Archivos de entorno y secretos
+.env
+*.env
+
+# Archivos de Python (caché, compilados)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

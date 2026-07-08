@@ -1,15 +1,23 @@
 import os
 from threading import Thread
-from flask import Flask, render_template_string
-import bot  # Importamos la lógica del bot
-import config  # Importamos los datos compartidos
+from flask import Flask, render_template_string, jsonify
+import bot
+import config
 
 app = Flask(__name__)
 
 
+# Endpoint asíncrono para alimentar el JavaScript del navegador
+@app.route("/api/data")
+def api_data():
+    # Convertimos el historial a una lista estática para evitar errores de hilos durante la lectura
+    return jsonify(
+        {"datos": config.datos_mercado, "historial": list(config.historial_analisis)}
+    )
+
+
 @app.route("/")
 def home():
-    # Renderizado desacoplado: Lee directamente de config.py sin llamar a APIs externas
     html_dashboard = """
     <!DOCTYPE html>
     <html lang="es">
@@ -31,63 +39,116 @@ def home():
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
                     <p class="text-sm text-slate-400 uppercase tracking-wider font-semibold">Precio Bitcoin (BTC/USDT)</p>
-                    <p class="text-4xl font-black text-emerald-400 mt-2">${{ "{:,.2f}".format(datos.precio_actual) }} USD</p>
+                    <p id="btc-precio" class="text-4xl font-black text-emerald-400 mt-2">Cargando...</p>
                 </div>
                 
                 <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
                     <p class="text-sm text-slate-400 uppercase tracking-wider font-semibold">RSI Actual (14 Días)</p>
                     <div class="flex items-center justify-between mt-2">
-                        <p class="text-4xl font-black {% if datos.rsi > 70 %}text-red-400{% elif datos.rsi < 30 %}text-cyan-400{% else %}text-amber-400{% endif %}">
-                            {{ "{:.2f}".format(datos.rsi) }}
-                        </p>
-                        <span class="text-xs px-2 py-1 rounded font-bold {% if datos.rsi > 70 %}bg-red-500/20 text-red-400{% elif datos.rsi < 30 %}bg-cyan-500/20 text-cyan-400{% else %}bg-amber-500/20 text-amber-400{% endif %}">
-                            {% if datos.rsi > 70 %}SOBRECOMPRA{% elif datos.rsi < 30 %}SOBREVENTA{% else %}NEUTRO{% endif %}
+                        <p id="rsi-valor" class="text-4xl font-black text-amber-400">--.--</p>
+                        <span id="rsi-badge" class="text-xs px-2 py-1 rounded font-bold bg-amber-500/20 text-amber-400">
+                            ESPERANDO
                         </span>
                     </div>
                 </div>
             </div>
 
-            <p class="text-xs text-slate-500 mb-8 text-right">Última revisión del bot: <span class="text-slate-300 font-medium">{{ datos.ultima_actualizacion }}</span></p>
+            <p class="text-xs text-slate-500 mb-8 text-right">Última revisión del bot: <span id="actualizacion-tiempo" class="text-slate-300 font-medium">N/A</span></p>
 
             <div class="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-700">
                     <h2 class="text-xl font-bold text-slate-200">📋 Historial Reciente de Análisis</h2>
                 </div>
-                <div class="divide-y divide-slate-700 max-h-96 overflow-y-auto">
-                    {% if not historial %}
-                        <p class="p-6 text-slate-400 text-center">Esperando el primer análisis del mercado...</p>
-                    {% else %}
-                        {% for registro in historial %}
-                        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-slate-750 transition-colors">
-                            <div class="mb-2 sm:mb-0">
-                                <span class="text-xs text-slate-400 block font-mono">{{ registro.fecha }}</span>
-                                <span class="font-semibold text-slate-200">BTC: ${{ "{:,.2f}".format(registro.precio) }} USD</span>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <span class="font-mono text-sm">RSI: <strong class="{% if registro.rsi > 70 %}text-red-400{% elif registro.rsi < 30 %}text-cyan-400{% else %}text-amber-400{% endif %}">{{ "{:.2f}".format(registro.rsi) }}</strong></span>
-                                <span class="text-sm font-medium">{{ registro.estado }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% endif %}
+                <div id="historial-lista" class="divide-y divide-slate-700 max-h-96 overflow-y-auto">
+                    <p class="p-6 text-slate-400 text-center">Esperando el primer análisis del mercado...</p>
                 </div>
             </div>
         </div>
+
+        <script>
+            async function actualizarDashboard() {
+                try {
+                    const respuesta = await fetch('/api/data');
+                    const resultado = await respuesta.json();
+                    
+                    const datos = resultado.datos;
+                    const historial = resultado.historial;
+
+                    // Formatear precio de BTC de manera profesional
+                    const precioFormateado = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(datos.precio_actual);
+                    document.getElementById('btc-precio').innerText = precioFormateado + " USD";
+                    
+                    // Actualizar textos básicos
+                    document.getElementById('rsi-valor').innerText = datos.rsi.toFixed(2);
+                    document.getElementById('actualizacion-tiempo').innerText = datos.ultima_actualizacion;
+
+                    // Cambiar dinámicamente colores y badges del RSI
+                    const rsiVal = datos.rsi;
+                    const rsiBadge = document.getElementById('rsi-badge');
+                    const rsiTexto = document.getElementById('rsi-valor');
+                    
+                    if (rsiVal > 70) {
+                        rsiTexto.className = "text-4xl font-black text-red-400";
+                        rsiBadge.className = "text-xs px-2 py-1 rounded font-bold bg-red-500/20 text-red-400";
+                        rsiBadge.innerText = "SOBRECOMPRA";
+                    } else if (rsiVal < 30) {
+                        rsiTexto.className = "text-4xl font-black text-cyan-400";
+                        rsiBadge.className = "text-xs px-2 py-1 rounded font-bold bg-cyan-500/20 text-cyan-400";
+                        rsiBadge.innerText = "SOBREVENTA";
+                    } else {
+                        rsiTexto.className = "text-4xl font-black text-amber-400";
+                        rsiBadge.className = "text-xs px-2 py-1 rounded font-bold bg-amber-500/20 text-amber-400";
+                        rsiBadge.innerText = "NEUTRO";
+                    }
+
+                    // Renderizar las filas del historial en la tabla
+                    const listaHistorial = document.getElementById('historial-lista');
+                    if (historial.length === 0) {
+                        listaHistorial.innerHTML = '<p class="p-6 text-slate-400 text-center">Esperando el primer análisis del mercado...</p>';
+                    } else {
+                        let htmlContenido = "";
+                        historial.forEach(reg => {
+                            const pReg = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(reg.precio);
+                            let colorRsi = reg.rsi > 70 ? 'text-red-400' : (reg.rsi < 30 ? 'text-cyan-400' : 'text-amber-400');
+                            
+                            htmlContenido += `
+                            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-slate-750 transition-colors">
+                                <div class="mb-2 sm:mb-0">
+                                    <span class="text-xs text-slate-400 block font-mono">${reg.fecha}</span>
+                                    <span class="font-semibold text-slate-200">BTC: ${pReg} USD</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="font-mono text-sm">RSI: <strong class="${colorRsi}">${reg.rsi.toFixed(2)}</strong></span>
+                                    <span class="text-sm font-medium text-slate-300">${reg.estado}</span>
+                                </div>
+                            </div>`;
+                        });
+                        listaHistorial.innerHTML = htmlContenido;
+                    }
+                } catch (error) {
+                    console.error("Error al refrescar los datos del dashboard:", error);
+                }
+            }
+
+            // Ejecución inmediata al abrir la página
+            actualizarDashboard();
+            
+            // Refresco automático continuo cada 30 segundos (30000 milisegundos)
+            setInterval(actualizarDashboard, 30000);
+        </script>
     </body>
     </html>
     """
-    return render_template_string(
-        html_dashboard, datos=config.datos_mercado, historial=config.historial_analisis
-    )
+    return render_template_string(html_dashboard)
 
 
 if __name__ == "__main__":
-    # 1. Creamos e iniciamos el hilo del bot de trading de fondo
+    # 1. Iniciamos el hilo del bot secundario de fondo
     t_bot = Thread(target=bot.bucle_bot)
     t_bot.daemon = True
     t_bot.start()
 
-    # 2. Corremos Flask en el hilo principal para Render
+    # 2. Arrancamos el orquestador principal de Flask para Render
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
     

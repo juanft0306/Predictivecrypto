@@ -1,0 +1,282 @@
+<!-- ===================================================================== -->
+<!-- BLOQUE 1 - HTML + CSS - recomendaciones.html                         -->
+<!-- ===================================================================== -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CryptoAlert - Recomendaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            background: radial-gradient(ellipse at top, #0f172a, #020617);
+            min-height: 100vh;
+            padding: 1.5rem;
+            padding-bottom: 6rem;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .badge-comprar { background: #10b981; color: white; }
+        .badge-vender { background: #ef4444; color: white; }
+        .badge-mantener { background: #f59e0b; color: white; }
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+        .btn-gradient:hover { transform: scale(1.02); }
+        .menu-toggle {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #94a3b8;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+        }
+        .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30,41,59,0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 0.5rem 0;
+            min-width: 150px;
+            z-index: 50;
+        }
+        .menu-dropdown.open { display: block; }
+        .menu-dropdown a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .menu-dropdown a:hover { background: rgba(99,102,241,0.1); color: #a5b4fc; }
+        .menu-dropdown a.active { color: #818cf8; font-weight: 600; }
+        .menu-wrapper { position: relative; }
+        .btn-flotante {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-size: 1rem;
+        }
+        .probabilidad-bar {
+            height: 6px;
+            background: #1e293b;
+            border-radius: 9999px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .probabilidad-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-6xl mx-auto">
+        <!-- HEADER -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    <i class="fas fa-robot text-indigo-400 mr-2"></i>Recomendaciones
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="menu-wrapper">
+                    <div class="menu-toggle" id="menuToggle">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="menu-dropdown" id="menuDropdown">
+                        <a href="/">Dashboard</a>
+                        <a href="/inversion">Mi Inversión</a>
+                        <a href="/recomendaciones" class="active">Recomendaciones</a>
+                        <a href="/asistente">Asistente</a>
+                    </div>
+                </div>
+                <span class="hidden sm:inline-block text-xs text-slate-400">
+                    <i class="fas fa-circle text-emerald-400 text-xs mr-1"></i> Conectado
+                </span>
+            </div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-lightbulb text-amber-400"></i> Señales de trading
+                </h2>
+                <div class="flex gap-2">
+                    <button id="btn-enviar-resumen" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-sm shadow-lg flex items-center gap-2">
+                        <i class="fas fa-bell"></i> Enviar resumen
+                    </button>
+                    <span class="text-xs text-slate-500" id="ultima-actualizacion">Actualizando...</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-slate-400 border-b border-slate-700/50">
+                            <th class="py-2 px-3 font-medium">Moneda</th>
+                            <th class="py-2 px-3 font-medium text-right">Precio</th>
+                            <th class="py-2 px-3 font-medium text-center">Recomendación</th>
+                            <th class="py-2 px-3 font-medium text-center">Probabilidad</th>
+                            <th class="py-2 px-3 font-medium text-right">RSI</th>
+                            <th class="py-2 px-3 font-medium text-right">SMA20</th>
+                            <th class="py-2 px-3 font-medium text-right">SMA50</th>
+                            <th class="py-2 px-3 font-medium text-right">24h</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-recomendaciones">
+                        <!-- JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
+        <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
+    </button>
+<!-- ===================================================================== -->
+<!-- FIN BLOQUE 1 - HTML + CSS - recomendaciones.html                     -->
+<!-- ===================================================================== -->
+    <!-- ===================================================================== -->
+<!-- BLOQUE 2 - JAVASCRIPT - recomendaciones.html                         -->
+<!-- ===================================================================== -->
+    <script>
+        // Menú
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('menuDropdown').classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.menu-wrapper');
+            if (!wrapper.contains(e.target)) {
+                document.getElementById('menuToggle').classList.remove('active');
+                document.getElementById('menuDropdown').classList.remove('open');
+            }
+        });
+
+        // Botón alerta flotante
+        document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
+            const original = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
+                const data = await resp.json();
+                alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
+            } catch (err) {
+                alert('❌ Error al enviar la alerta');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = original;
+            }
+        });
+
+        // Enviar resumen de recomendaciones
+        document.getElementById('btn-enviar-resumen').addEventListener('click', async function() {
+            const original = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                const resp = await fetch('/api/enviar_recomendaciones', { method: 'POST' });
+                const data = await resp.json();
+                alert(data.status === 'ok' ? '✅ Resumen enviado a Telegram' : '❌ ' + data.mensaje);
+            } catch (err) {
+                alert('❌ Error al enviar el resumen');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = original;
+            }
+        });
+
+        // SSE
+        const source = new EventSource('/api/stream');
+        source.onmessage = (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                const recs = data.recomendaciones || {};
+                const actualizacion = data.datos?.BTCUSDT?.ultima_actualizacion || 'N/A';
+                document.getElementById('ultima-actualizacion').innerText = 'Última: ' + actualizacion;
+
+                const tbody = document.getElementById('tabla-recomendaciones');
+                let html = '';
+                for (const [symbol, rec] of Object.entries(recs)) {
+                    const nombre = rec.indicadores?.nombre || symbol.replace('USDT', '');
+                    const precio = rec.indicadores?.precio || 0;
+                    const recomendacion = rec.recomendacion || 'Sin datos';
+                    const prob = rec.probabilidad || 0;
+                    const rsi = rec.indicadores?.rsi || '--';
+                    const sma20 = rec.indicadores?.sma20 || '--';
+                    const sma50 = rec.indicadores?.sma50 || '--';
+                    const variacion = rec.indicadores?.variacion || 0;
+
+                    let badge = 'badge-mantener';
+                    if (recomendacion === 'Comprar') badge = 'badge-comprar';
+                    else if (recomendacion === 'Vender') badge = 'badge-vender';
+
+                    const colorProb = prob >= 70 ? 'bg-emerald-400' : prob <= 30 ? 'bg-red-400' : 'bg-amber-400';
+                    const colorVar = variacion >= 0 ? 'text-emerald-400' : 'text-red-400';
+                    const signo = variacion >= 0 ? '+' : '';
+
+                    html += `
+                        <tr class="border-b border-slate-700/30 hover:bg-slate-800/30">
+                            <td class="py-3 px-3 font-semibold text-white">${nombre}</td>
+                            <td class="py-3 px-3 text-right text-white">$${precio.toFixed(2)}</td>
+                            <td class="py-3 px-3 text-center">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${badge}">${recomendacion}</span>
+                            </td>
+                            <td class="py-3 px-3 text-center">
+                                <div class="flex items-center gap-2 justify-center">
+                                    <span class="text-xs font-bold text-slate-300">${prob}%</span>
+                                    <div class="probabilidad-bar w-16">
+                                        <div class="probabilidad-fill ${colorProb}" style="width:${prob}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 px-3 text-right ${rsi < 30 ? 'text-blue-400' : rsi > 70 ? 'text-red-400' : 'text-amber-400'}">${rsi}</td>
+                            <td class="py-3 px-3 text-right text-slate-300">${sma20}</td>
+                            <td class="py-3 px-3 text-right text-slate-300">${sma50}</td>
+                            <td class="py-3 px-3 text-right ${colorVar}">${signo}${variacion.toFixed(2)}%</td>
+                        </tr>
+                    `;
+                }
+                tbody.innerHTML = html || '<tr><td colspan="8" class="text-center text-slate-500 py-4">Esperando datos...</td></tr>';
+            } catch (error) {
+                console.error('Error SSE:', error);
+            }
+        };
+        source.onerror = () => console.warn('SSE reconectando...');
+    </script>
+</body>
+</html>
+<!-- ===================================================================== -->
+<!-- FIN BLOQUE 2 - JAVASCRIPT - recomendaciones.html                     -->
+<!-- ===================================================================== -->

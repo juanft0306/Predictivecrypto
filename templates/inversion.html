@@ -1,174 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CryptoAlert - Seguimiento de Inversión</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAlert - Mi Inversión</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ============================================================
-           ESTILOS
-           ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
         * { font-family: 'Inter', sans-serif; }
-        body {
-            background: radial-gradient(ellipse at top, #0f172a, #020617);
-            min-height: 100vh;
-            padding: 1.5rem;
-            padding-bottom: 6rem;
-        }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            transition: all 0.3s ease;
-        }
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            border-color: rgba(99,102,241,0.3);
-        }
-        .btn-gradient {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            transition: all 0.3s ease;
-        }
-        .btn-gradient:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(99,102,241,0.4);
-        }
+        body { background: radial-gradient(ellipse at top, #0f172a, #020617); min-height: 100vh; padding: 1.5rem; padding-bottom: 6rem; }
+        .glass-card { background: rgba(30,41,59,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.6); border-color: rgba(99,102,241,0.3); }
+        .btn-gradient { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.3s ease; }
+        .btn-gradient:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(99,102,241,0.4); }
         .btn-gradient:active { transform: scale(0.98); }
         .badge-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-        input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
-        .progress-bar {
-            height: 8px;
-            background: #1e293b;
-            border-radius: 9999px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            border-radius: 9999px;
-            transition: width 0.5s ease;
-        }
-        .menu-toggle {
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 4px;
-        }
-        .menu-toggle span {
-            display: block;
-            width: 24px;
-            height: 2px;
-            background: #94a3b8;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-        }
+        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+        .menu-toggle { cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+        .menu-toggle span { display: block; width: 24px; height: 2px; background: #94a3b8; transition: all 0.3s ease; border-radius: 9999px; }
         .menu-toggle:hover span { background: #a5b4fc; }
-        .menu-toggle.active span:nth-child(1) {
-            transform: rotate(45deg) translate(4px, 4px);
-        }
+        .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
         .menu-toggle.active span:nth-child(2) { opacity: 0; }
-        .menu-toggle.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(4px, -4px);
-        }
-        .menu-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(30,41,59,0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            padding: 0.5rem 0;
-            min-width: 150px;
-            z-index: 50;
-        }
+        .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+        .menu-dropdown { display: none; position: absolute; top: 100%; right: 0; background: rgba(30,41,59,0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); padding: 0.5rem 0; min-width: 180px; z-index: 50; }
         .menu-dropdown.open { display: block; }
-        .menu-dropdown a {
-            display: block;
-            padding: 0.5rem 1rem;
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        .menu-dropdown a:hover {
-            background: rgba(99,102,241,0.1);
-            color: #a5b4fc;
-        }
-        .menu-dropdown a.active {
-            color: #818cf8;
-            font-weight: 600;
-        }
+        .menu-dropdown a { display: block; padding: 0.5rem 1rem; color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; }
+        .menu-dropdown a:hover { background: rgba(99,102,241,0.1); color: #a5b4fc; }
+        .menu-dropdown a.active { color: #818cf8; font-weight: 600; }
         .menu-wrapper { position: relative; }
-        .btn-flotante {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 9999;
-            box-shadow: 0 4px 20px rgba(99,102,241,0.5);
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            font-size: 1rem;
-        }
-        @media (max-width: 640px) {
-            .btn-flotante {
-                bottom: 1rem;
-                right: 1rem;
-                padding: 0.6rem 1.2rem;
-                font-size: 0.85rem;
-            }
-            .btn-flotante span { display: inline; }
-        }
-        select {
-            background-color: #1e293b;
-            color: white;
-            border: 1px solid #334155;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            outline: none;
-        }
+        .btn-flotante { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; box-shadow: 0 4px 20px rgba(99,102,241,0.5); padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 1rem; }
+        @media (max-width: 640px) { .btn-flotante { bottom: 1rem; right: 1rem; padding: 0.6rem 1.2rem; font-size: 0.85rem; } }
+        select { background-color: #1e293b; color: white; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9rem; outline: none; }
         select:focus { border-color: #6366f1; }
-        .moneda-badge {
-            display: inline-block;
-            background: rgba(99,102,241,0.15);
-            padding: 0.15rem 0.6rem;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            color: #a5b4fc;
-        }
-        .chart-container {
-            position: relative;
-            height: 220px;
-        }
-        @media (min-width: 768px) {
-            .chart-container { height: 280px; }
-        }
+        .moneda-badge { display: inline-block; background: rgba(99,102,241,0.15); padding: 0.15rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; color: #a5b4fc; }
+        .progress-bar { height: 8px; background: #1e293b; border-radius: 9999px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 9999px; transition: width 0.5s ease; }
+        .chart-container { position: relative; height: 220px; }
+        @media (min-width: 768px) { .chart-container { height: 280px; } }
+        input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
         <!-- HEADER -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <div class="flex items-center gap-4">
-                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-chart-line text-indigo-400"></i> CryptoAlert
-                </h1>
-            </div>
+            <h1 class="text-2xl font-bold text-white"><i class="fas fa-chart-line text-indigo-400 mr-2"></i>CryptoAlert</h1>
             <div class="flex items-center gap-3">
                 <div class="menu-wrapper">
                     <div class="menu-toggle" id="menuToggle">
@@ -177,6 +55,9 @@
                     <div class="menu-dropdown" id="menuDropdown">
                         <a href="/">Dashboard</a>
                         <a href="/inversion" class="active">Mi Inversión</a>
+                        <a href="/consejos">Consejos</a>
+                        <a href="/historial">Historial</a>
+                        <a href="/asistente">Asistente</a>
                     </div>
                 </div>
                 <span class="flex items-center gap-2 text-xs text-slate-400">
@@ -188,571 +69,109 @@
 
         <!-- TÍTULO Y SELECTOR -->
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                    <i class="fas fa-coins text-emerald-400"></i> Seguimiento de Inversión
-                </h2>
-                <p class="text-slate-400 text-sm mt-1">Configura tu inversión para recibir alertas cuando alcances tu meta</p>
-            </div>
+            <div><h2 class="text-3xl font-bold text-white"><i class="fas fa-coins text-emerald-400 mr-2"></i>Mi Inversión</h2><p class="text-slate-400 text-sm mt-1">Configura y monitorea tus inversiones</p></div>
             <div class="flex items-center gap-2">
                 <span class="text-slate-400 text-sm">Moneda:</span>
-                <select id="selector-moneda-inv" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm">
-                    <!-- JS llena -->
-                </select>
-                <span class="moneda-badge" id="moneda-badge-inv">BTC</span>
+                <select id="selector-moneda" class="bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm"></select>
+                <span class="moneda-badge" id="moneda-badge">BTC</span>
             </div>
         </div>
 
-        <!-- RESUMEN (4 tarjetas) -->
+        <!-- RESUMEN -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="glass-card rounded-2xl p-5">
-                <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-coins"></i> Cantidad
-                </p>
-                <p class="text-2xl font-bold text-white" id="cantidad-inversion">0.00000000</p>
-            </div>
-            <div class="glass-card rounded-2xl p-5">
-                <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-dollar-sign"></i> Capital invertido
-                </p>
-                <p class="text-2xl font-bold text-white" id="capital-invertido">$0.00</p>
-            </div>
-            <div class="glass-card rounded-2xl p-5">
-                <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-bullseye"></i> Ganancia deseada
-                </p>
-                <p class="text-2xl font-bold text-white" id="ganancia-deseada">$0.00</p>
-            </div>
-            <div class="glass-card rounded-2xl p-5">
-                <p class="text-slate-400 text-xs uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-chart-simple"></i> Ganancia actual
-                </p>
-                <p class="text-2xl font-bold" id="ganancia-actual">0.00%</p>
-            </div>
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase"><i class="fas fa-coins mr-1"></i>Cantidad</p><p class="text-2xl font-bold text-white" id="cantidad-inversion">0.00000000</p></div>
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase"><i class="fas fa-dollar-sign mr-1"></i>Capital</p><p class="text-2xl font-bold text-white" id="capital-invertido">$0.00</p></div>
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase"><i class="fas fa-bullseye mr-1"></i>Ganancia deseada</p><p class="text-2xl font-bold text-white" id="ganancia-deseada">$0.00</p></div>
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase"><i class="fas fa-chart-simple mr-1"></i>Ganancia actual</p><p class="text-2xl font-bold" id="ganancia-actual">0.00%</p></div>
         </div>
 
-        <!-- BARRA DE PROGRESO -->
+        <!-- PROGRESO -->
         <div class="glass-card rounded-2xl p-5 mb-6">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-slate-400 text-sm">Progreso hacia tu meta</span>
-                <span class="text-white text-sm font-bold" id="progreso-texto">0%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400" id="progreso-bar" style="width:0%"></div>
-            </div>
-            <div class="flex justify-between text-xs text-slate-500 mt-1">
-                <span id="label-valor-actual">$0.00</span>
-                <span id="label-meta">$0.00</span>
-            </div>
+            <div class="flex justify-between items-center mb-2"><span class="text-slate-400 text-sm">Progreso hacia tu meta</span><span class="text-white text-sm font-bold" id="progreso-texto">0%</span></div>
+            <div class="progress-bar"><div class="progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400" id="progreso-bar" style="width:0%"></div></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span id="label-valor-actual">$0.00</span><span id="label-meta">$0.00</span></div>
         </div>
 
-        <!-- CONFIGURACIÓN (NUEVA: 3 campos) -->
+        <!-- CONFIGURACIÓN -->
         <div class="glass-card rounded-2xl p-6 mb-6">
-            <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                <i class="fas fa-sliders-h text-indigo-400"></i> Configurar Inversión
-                <span class="moneda-badge" id="moneda-badge-config">BTC</span>
-            </h3>
+            <h3 class="text-lg font-bold text-white mb-4"><i class="fas fa-sliders-h text-indigo-400 mr-2"></i>Configurar Inversión <span class="moneda-badge" id="moneda-badge-config">BTC</span></h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">
-                        Cantidad de moneda
-                    </label>
-                    <input type="number" id="input-cantidad" step="0.00000001" min="0"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                           placeholder="Ej: 0.00001602">
-                    <p class="text-xs text-slate-500 mt-1">Cantidad que posees</p>
-                </div>
-                <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">
-                        Capital invertido (USD)
-                    </label>
-                    <input type="number" id="input-capital" step="0.01" min="0"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                           placeholder="Ej: 0.9944">
-                    <p class="text-xs text-slate-500 mt-1">Monto que pagaste</p>
-                </div>
-                <div>
-                    <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">
-                        Ganancia deseada (USD)
-                    </label>
-                    <input type="number" id="input-ganancia" step="0.01" min="0"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                           placeholder="Ej: 0.50">
-                    <p class="text-xs text-slate-500 mt-1">Cuánto quieres ganar</p>
-                </div>
-            </div>
-            <!-- Resumen automático -->
-            <div id="resumen-inversion" class="mt-4 p-4 bg-slate-800/50 rounded-lg hidden">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                    <div>
-                        <p class="text-slate-400 text-xs">Capital invertido</p>
-                        <p class="text-white font-bold" id="resumen-capital">$0.00</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-400 text-xs">Ganancia deseada</p>
-                        <p class="text-white font-bold" id="resumen-ganancia">$0.00</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-400 text-xs">Monto total deseado</p>
-                        <p class="text-white font-bold text-emerald-400" id="resumen-total">$0.00</p>
-                    </div>
-                    <div>
-                        <p class="text-slate-400 text-xs">Precio objetivo</p>
-                        <p class="text-white font-bold" id="resumen-objetivo">$0.00</p>
-                    </div>
-                </div>
+                <div><label class="block text-slate-400 text-xs uppercase mb-1">Cantidad</label><input type="number" id="input-cantidad" step="0.00000001" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="0.00000000"></div>
+                <div><label class="block text-slate-400 text-xs uppercase mb-1">Capital invertido ($)</label><input type="number" id="input-capital" step="0.01" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="0.00"></div>
+                <div><label class="block text-slate-400 text-xs uppercase mb-1">Ganancia deseada ($)</label><input type="number" id="input-ganancia" step="0.01" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" placeholder="0.00"></div>
             </div>
             <div class="flex flex-wrap gap-3 mt-4">
-                <button id="btn-guardar-inversion" class="btn-gradient text-white font-bold py-2 px-6 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
-                <button id="btn-limpiar-inversion" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                    <i class="fas fa-trash"></i> Limpiar
-                </button>
-                <button id="btn-enviar-alerta-inversion" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                    <i class="fas fa-bell"></i> Alertar ahora
-                </button>
+                <button id="btn-guardar" class="btn-gradient text-white font-bold py-2 px-6 rounded-xl text-sm shadow-lg"><i class="fas fa-save mr-2"></i>Guardar</button>
+                <button id="btn-limpiar" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-xl text-sm"><i class="fas fa-trash mr-2"></i>Limpiar</button>
+                <button id="btn-alertar-ahora" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-xl text-sm"><i class="fas fa-bell mr-2"></i>Alertar ahora</button>
             </div>
-            <div id="mensaje-inversion" class="mt-3 text-sm"></div>
+            <div id="mensaje" class="mt-3 text-sm"></div>
         </div>
 
         <!-- GRÁFICOS -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div class="glass-card rounded-2xl p-5">
-                <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
-                    <i class="fas fa-chart-line text-indigo-400"></i> Evolución del Precio
-                </h4>
-                <div class="chart-container">
-                    <canvas id="priceChart"></canvas>
-                </div>
-            </div>
-            <div class="glass-card rounded-2xl p-5">
-                <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
-                    <i class="fas fa-wave-square text-amber-400"></i> RSI (14 días)
-                </h4>
-                <div class="chart-container">
-                    <canvas id="rsiChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- HISTORIAL DETALLADO -->
-        <div class="glass-card rounded-2xl p-5">
-            <div class="flex items-center justify-between mb-3">
-                <h4 class="text-white font-semibold flex items-center gap-2">
-                    <i class="fas fa-clock text-slate-400"></i> Historial de Precios
-                </h4>
-                <span class="text-xs text-slate-500">Últimas 5 actualizaciones</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-left text-slate-400 border-b border-slate-700/50">
-                            <th class="py-2 px-3 font-medium">Fecha</th>
-                            <th class="py-2 px-3 font-medium text-right">Precio</th>
-                            <th class="py-2 px-3 font-medium text-right">Valor Inversión</th>
-                            <th class="py-2 px-3 font-medium text-right">Ganancia</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historial-detallado" class="divide-y divide-slate-700/30">
-                        <!-- JS llena -->
-                    </tbody>
-                </table>
-            </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="glass-card rounded-2xl p-5"><h4 class="text-white font-semibold mb-3"><i class="fas fa-chart-line text-indigo-400 mr-2"></i>Precio</h4><div class="chart-container"><canvas id="priceChart"></canvas></div></div>
+            <div class="glass-card rounded-2xl p-5"><h4 class="text-white font-semibold mb-3"><i class="fas fa-wave-square text-amber-400 mr-2"></i>RSI</h4><div class="chart-container"><canvas id="rsiChart"></canvas></div></div>
         </div>
     </div>
 
-    <!-- BOTÓN FLOTANTE -->
-    <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
+    <button id="btn-alerta" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
         <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
     </button>
 
     <script>
-        // ============================================================
-        //  MENÚ HAMBURGUESA
-        // ============================================================
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.getElementById('menuDropdown').classList.toggle('open');
-        });
-        document.addEventListener('click', function(e) {
-            const wrapper = document.querySelector('.menu-wrapper');
-            if (!wrapper.contains(e.target)) {
-                document.getElementById('menuToggle').classList.remove('active');
-                document.getElementById('menuDropdown').classList.remove('open');
-            }
-        });
+        // Menú
+        document.getElementById('menuToggle').addEventListener('click', function(){ this.classList.toggle('active'); document.getElementById('menuDropdown').classList.toggle('open'); });
+        document.addEventListener('click', function(e){ const w=document.querySelector('.menu-wrapper'); if(!w.contains(e.target)){ document.getElementById('menuToggle').classList.remove('active'); document.getElementById('menuDropdown').classList.remove('open'); } });
 
-        // ============================================================
-        //  BOTÓN FLOTANTE
-        // ============================================================
-        document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
-            const original = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            try {
-                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
-                const data = await resp.json();
-                alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
-            } catch (err) {
-                alert('❌ Error al enviar la alerta');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = original;
-            }
-        });
+        // Botón flotante
+        document.getElementById('btn-alerta').addEventListener('click', async function(){ const orig=this.innerHTML; this.disabled=true; this.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...'; try{ const resp=await fetch('/api/enviar_alerta',{method:'POST'}); const data=await resp.json(); alert(data.status==='ok'?'✅ Alerta enviada':'❌ '+data.mensaje); }catch(e){ alert('❌ Error'); }finally{ this.disabled=false; this.innerHTML=orig; } });
 
-        // ============================================================
-        //  GRÁFICOS CON CHART.JS
-        // ============================================================
-        let priceChartInstance = null;
-        let rsiChartInstance = null;
-
-        function initCharts() {
-            const ctxPrice = document.getElementById('priceChart').getContext('2d');
-            const ctxRsi = document.getElementById('rsiChart').getContext('2d');
-
-            priceChartInstance = new Chart(ctxPrice, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Precio (USD)',
-                        data: [],
-                        borderColor: '#818cf8',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 2,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 } }
-                    }
-                }
-            });
-
-            rsiChartInstance = new Chart(ctxRsi, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'RSI',
-                        data: [],
-                        borderColor: '#fbbf24',
-                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 2,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 } }
-                    }
-                }
-            });
-            console.log('✅ Gráficos inicializados correctamente');
+        // Gráficos
+        let priceChart, rsiChart;
+        function initCharts(){ priceChart=new Chart(document.getElementById('priceChart'),{type:'line',data:{labels:[],datasets:[{label:'Precio',data:[],borderColor:'#818cf8',backgroundColor:'rgba(99,102,241,0.1)',fill:true,tension:0.2,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#94a3b8',font:{size:10}}},x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:10},maxTicksLimit:8}}}}});
+        rsiChart=new Chart(document.getElementById('rsiChart'),{type:'line',data:{labels:[],datasets:[{label:'RSI',data:[],borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,0.1)',fill:true,tension:0.2,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#94a3b8',font:{size:10}}},x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:10},maxTicksLimit:8}}}}});
         }
 
-        // ============================================================
-        //  SSE – ACTUALIZACIÓN EN TIEMPO REAL
-        // ============================================================
-        const estadoConexion = document.getElementById('estado-conexion');
-        const selectorMoneda = document.getElementById('selector-moneda-inv');
-        const monedaBadge = document.getElementById('moneda-badge-inv');
-        const monedaBadgeConfig = document.getElementById('moneda-badge-config');
-        let currentMoneda = 'BTCUSDT';
-        let currentCantidad = 0;
-        let currentCapital = 0;
-        let currentGananciaDeseada = 0;
-
-        function actualizarSelector(monedas, seleccionada) {
-            const current = selectorMoneda.value;
-            selectorMoneda.innerHTML = '';
-            for (const symbol of Object.keys(monedas)) {
-                const nombre = monedas[symbol].nombre || symbol;
-                const opt = document.createElement('option');
-                opt.value = symbol;
-                opt.textContent = `${nombre} (${symbol.replace('USDT', '')})`;
-                if (symbol === seleccionada) opt.selected = true;
-                selectorMoneda.appendChild(opt);
-            }
-            if (seleccionada && selectorMoneda.value !== seleccionada) {
-                selectorMoneda.value = seleccionada;
-            }
-            currentMoneda = selectorMoneda.value;
-            monedaBadge.innerText = currentMoneda.replace('USDT', '');
-            monedaBadgeConfig.innerText = currentMoneda.replace('USDT', '');
-        }
-
-        const source = new EventSource('/api/stream');
-        source.onmessage = (e) => {
-            try {
-                const data = JSON.parse(e.data);
-                const d = data.datos;
-                const inversiones = data.inversiones || {};
-                const monedaSel = data.moneda_seleccionada || 'BTCUSDT';
-
-                if (selectorMoneda.options.length === 0) {
-                    actualizarSelector(d, monedaSel);
-                } else if (selectorMoneda.value !== monedaSel && monedaSel) {
-                    selectorMoneda.value = monedaSel;
-                    currentMoneda = monedaSel;
-                    monedaBadge.innerText = currentMoneda.replace('USDT', '');
-                    monedaBadgeConfig.innerText = currentMoneda.replace('USDT', '');
-                }
-
-                currentMoneda = monedaSel;
-                const info = d[monedaSel] || {};
-                const inv = inversiones[monedaSel] || { cantidad: 0, capital_invertido: 0, ganancia_deseada: 0 };
-                currentCantidad = inv.cantidad || 0;
-                currentCapital = inv.capital_invertido || 0;
-                currentGananciaDeseada = inv.ganancia_deseada || 0;
-
-                const precioActual = info.precio_actual || 0;
-                const valorActual = currentCantidad * precioActual;
-                const gananciaActual = currentCapital > 0 ? ((valorActual - currentCapital) / currentCapital) * 100 : 0;
-                const montoTotalDeseado = currentCapital + currentGananciaDeseada;
-
-                // Actualizar tarjetas
-                document.getElementById('cantidad-inversion').innerText = currentCantidad.toFixed(8);
-                document.getElementById('capital-invertido').innerText = '$' + currentCapital.toFixed(2);
-                document.getElementById('ganancia-deseada').innerText = '$' + currentGananciaDeseada.toFixed(2);
-                const gaEl = document.getElementById('ganancia-actual');
-                gaEl.innerText = (gananciaActual > 0 ? '+' : '') + gananciaActual.toFixed(2) + '%';
-                gaEl.className = 'text-2xl font-bold ' + (gananciaActual > 0 ? 'text-emerald-400' : gananciaActual < 0 ? 'text-red-400' : 'text-slate-400');
-
-                // Barra de progreso
-                if (montoTotalDeseado > 0) {
-                    const progreso = Math.min((valorActual / montoTotalDeseado) * 100, 100);
-                    document.getElementById('progreso-texto').innerText = progreso.toFixed(1) + '%';
-                    document.getElementById('progreso-bar').style.width = progreso + '%';
-                    document.getElementById('label-valor-actual').innerText = '$' + valorActual.toFixed(2);
-                    document.getElementById('label-meta').innerText = '$' + montoTotalDeseado.toFixed(2);
-                    if (valorActual >= montoTotalDeseado) {
-                        document.getElementById('progreso-bar').className = 'progress-fill bg-gradient-to-r from-emerald-500 to-green-400';
-                    } else {
-                        document.getElementById('progreso-bar').className = 'progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400';
-                    }
-                } else {
-                    document.getElementById('progreso-texto').innerText = '0%';
-                    document.getElementById('progreso-bar').style.width = '0%';
-                    document.getElementById('label-valor-actual').innerText = '$0.00';
-                    document.getElementById('label-meta').innerText = '$0.00';
-                }
-
-                // Cargar inputs si no están enfocados
-                if (!document.activeElement || (document.activeElement.id !== 'input-cantidad' && document.activeElement.id !== 'input-capital' && document.activeElement.id !== 'input-ganancia')) {
-                    document.getElementById('input-cantidad').value = currentCantidad || '';
-                    document.getElementById('input-capital').value = currentCapital || '';
-                    document.getElementById('input-ganancia').value = currentGananciaDeseada || '';
-                }
-
-                // Resumen
-                const resumen = document.getElementById('resumen-inversion');
-                if (currentCantidad > 0 && currentCapital > 0 && currentGananciaDeseada > 0) {
-                    resumen.classList.remove('hidden');
-                    const precioObj = montoTotalDeseado / currentCantidad;
-                    document.getElementById('resumen-capital').innerText = '$' + currentCapital.toFixed(2);
-                    document.getElementById('resumen-ganancia').innerText = '$' + currentGananciaDeseada.toFixed(2);
-                    document.getElementById('resumen-total').innerText = '$' + montoTotalDeseado.toFixed(2);
-                    document.getElementById('resumen-objetivo').innerText = '$' + precioObj.toFixed(2);
-                } else {
-                    resumen.classList.add('hidden');
-                }
-
-                // Gráficos
-                const hora = info.hora_venezuela || '--:--';
-                const rsi = info.rsi || 50;
-
-                if (priceChartInstance) {
-                    priceChartInstance.data.labels.push(hora);
-                    priceChartInstance.data.datasets[0].data.push(precioActual);
-                    if (priceChartInstance.data.labels.length > 20) {
-                        priceChartInstance.data.labels.shift();
-                        priceChartInstance.data.datasets[0].data.shift();
-                    }
-                    priceChartInstance.update('none');
-                }
-
-                if (rsiChartInstance) {
-                    rsiChartInstance.data.labels.push(hora);
-                    rsiChartInstance.data.datasets[0].data.push(rsi);
-                    if (rsiChartInstance.data.labels.length > 20) {
-                        rsiChartInstance.data.labels.shift();
-                        rsiChartInstance.data.datasets[0].data.shift();
-                    }
-                    rsiChartInstance.update('none');
-                }
-
-                // Historial
-                const historial = data.historial || [];
-                const tbody = document.getElementById('historial-detallado');
-                tbody.innerHTML = historial.map(h => {
-                    const valorHist = currentCantidad * h.precio;
-                    const gananciaHist = currentCapital > 0 ? ((valorHist - currentCapital) / currentCapital) * 100 : 0;
-                    return `
-                        <tr>
-                            <td class="py-2 px-3 text-slate-400">${h.fecha}</td>
-                            <td class="py-2 px-3 text-right text-white font-medium">$${h.precio.toLocaleString()}</td>
-                            <td class="py-2 px-3 text-right text-slate-300">$${valorHist.toFixed(2)}</td>
-                            <td class="py-2 px-3 text-right ${gananciaHist >= 0 ? 'text-emerald-400' : 'text-red-400'}">${(gananciaHist > 0 ? '+' : '') + gananciaHist.toFixed(2)}%</td>
-                        </tr>
-                    `;
-                }).join('') || '<tr><td colspan="4" class="text-center text-slate-500 py-4">No hay datos históricos aún</td></tr>';
-
-                estadoConexion.innerText = 'Conectado';
-                console.log('📊 Datos de inversión actualizados para', currentMoneda);
-            } catch (error) {
-                console.error('❌ Error procesando SSE:', error);
-            }
+        // SSE
+        const selector=document.getElementById('selector-moneda');
+        const source=new EventSource('/api/stream');
+        let currentMoneda='BTCUSDT';
+        source.onmessage=(e)=>{
+            const data=JSON.parse(e.data);
+            const d=data.datos;
+            const inversiones=data.inversiones||{};
+            const monedaSel=data.moneda_seleccionada||'BTCUSDT';
+            if(selector.options.length===0){ for(const s of Object.keys(d)){ const opt=document.createElement('option'); opt.value=s; opt.textContent=d[s].nombre+' ('+s.replace('USDT','')+')'; selector.appendChild(opt); } selector.value=monedaSel; currentMoneda=monedaSel; document.getElementById('moneda-badge').innerText=currentMoneda.replace('USDT',''); document.getElementById('moneda-badge-config').innerText=currentMoneda.replace('USDT',''); }
+            if(selector.value!==monedaSel){ selector.value=monedaSel; currentMoneda=monedaSel; document.getElementById('moneda-badge').innerText=currentMoneda.replace('USDT',''); document.getElementById('moneda-badge-config').innerText=currentMoneda.replace('USDT',''); }
+            const info=d[selector.value]||{};
+            const inv=inversiones[selector.value]||{cantidad:0,capital:0,ganancia_deseada:0};
+            const cantidad=inv.cantidad||0, capital=inv.capital||0, ganancia=inv.ganancia_deseada||0;
+            const precio=info.precio_actual||0, valorActual=cantidad*precio;
+            const gananciaActual=capital>0?((valorActual-capital)/capital)*100:0;
+            const meta=capital+ganancia;
+            document.getElementById('cantidad-inversion').innerText=cantidad.toFixed(8);
+            document.getElementById('capital-invertido').innerText='$'+capital.toFixed(2);
+            document.getElementById('ganancia-deseada').innerText='$'+ganancia.toFixed(2);
+            const gaEl=document.getElementById('ganancia-actual');
+            gaEl.innerText=(gananciaActual>0?'+':'')+gananciaActual.toFixed(2)+'%';
+            gaEl.className='text-2xl font-bold '+(gananciaActual>=0?'text-emerald-400':'text-red-400');
+            if(meta>0){ const prog=Math.min((valorActual/meta)*100,100); document.getElementById('progreso-texto').innerText=prog.toFixed(1)+'%'; document.getElementById('progreso-bar').style.width=prog+'%'; document.getElementById('label-valor-actual').innerText='$'+valorActual.toFixed(2); document.getElementById('label-meta').innerText='$'+meta.toFixed(2); if(valorActual>=meta){ document.getElementById('progreso-bar').className='progress-fill bg-gradient-to-r from-emerald-500 to-green-400'; } else { document.getElementById('progreso-bar').className='progress-fill bg-gradient-to-r from-indigo-500 to-emerald-400'; } } else { document.getElementById('progreso-texto').innerText='0%'; document.getElementById('progreso-bar').style.width='0%'; document.getElementById('label-valor-actual').innerText='$0.00'; document.getElementById('label-meta').innerText='$0.00'; }
+            if(!document.activeElement||(document.activeElement.id!=='input-cantidad'&&document.activeElement.id!=='input-capital'&&document.activeElement.id!=='input-ganancia')){ document.getElementById('input-cantidad').value=cantidad||''; document.getElementById('input-capital').value=capital||''; document.getElementById('input-ganancia').value=ganancia||''; }
+            const historial=data.historial||[];
+            if(priceChart&&historial.length>0){ priceChart.data.labels=historial.map(h=>h.fecha); priceChart.data.datasets[0].data=historial.map(h=>h.precio); priceChart.update('none'); }
+            if(rsiChart&&historial.length>0){ rsiChart.data.labels=historial.map(h=>h.fecha); rsiChart.data.datasets[0].data=historial.map(h=>h.rsi); rsiChart.update('none'); }
         };
 
-        source.onerror = (e) => {
-            estadoConexion.innerText = '⚠️ Reconectando...';
-            console.warn('⚠️ Error en SSE, reintentando automáticamente...');
-        };
+        selector.addEventListener('change', async function(){ const symbol=this.value; document.getElementById('moneda-badge').innerText=symbol.replace('USDT',''); document.getElementById('moneda-badge-config').innerText=symbol.replace('USDT',''); try{ await fetch('/api/cambiar_moneda',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol})}); if(priceChart){ priceChart.data.labels=[]; priceChart.data.datasets[0].data=[]; priceChart.update(); } if(rsiChart){ rsiChart.data.labels=[]; rsiChart.data.datasets[0].data=[]; rsiChart.update(); } }catch(err){} });
 
-        // ============================================================
-        //  CAMBIO DE MONEDA (selector)
-        // ============================================================
-        selectorMoneda.addEventListener('change', async function() {
-            const symbol = this.value;
-            currentMoneda = symbol;
-            monedaBadge.innerText = symbol.replace('USDT', '');
-            monedaBadgeConfig.innerText = symbol.replace('USDT', '');
-            try {
-                const resp = await fetch('/api/cambiar_moneda', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ symbol })
-                });
-                const data = await resp.json();
-                if (data.status !== 'ok') {
-                    console.warn('Error al cambiar moneda:', data.mensaje);
-                }
-                if (priceChartInstance) {
-                    priceChartInstance.data.labels = [];
-                    priceChartInstance.data.datasets[0].data = [];
-                    priceChartInstance.update();
-                }
-                if (rsiChartInstance) {
-                    rsiChartInstance.data.labels = [];
-                    rsiChartInstance.data.datasets[0].data = [];
-                    rsiChartInstance.update();
-                }
-            } catch (err) {
-                console.error('Error al cambiar moneda:', err);
-            }
-        });
+        document.getElementById('btn-guardar').addEventListener('click', async function(){ const cantidad=parseFloat(document.getElementById('input-cantidad').value)||0; const capital=parseFloat(document.getElementById('input-capital').value)||0; const ganancia=parseFloat(document.getElementById('input-ganancia').value)||0; if(cantidad<=0||capital<=0||ganancia<=0){ document.getElementById('mensaje').innerHTML='<span class="text-red-400">⚠️ Todos los campos > 0</span>'; return; } this.disabled=true; this.innerHTML='<i class="fas fa-spinner fa-spin"></i> Guardando...'; try{ const resp=await fetch('/api/actualizar_inversion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:selector.value,cantidad,capital,ganancia_deseada:ganancia})}); const data=await resp.json(); document.getElementById('mensaje').innerHTML=data.status==='ok'?'<span class="text-emerald-400">✅ '+data.mensaje+'</span>':'<span class="text-red-400">❌ '+data.mensaje+'</span>'; }catch(err){ document.getElementById('mensaje').innerHTML='<span class="text-red-400">❌ Error</span>'; } finally{ this.disabled=false; this.innerHTML='<i class="fas fa-save"></i> Guardar'; } });
 
-        // ============================================================
-        //  FUNCIONES DE INVERSIÓN
-        // ============================================================
-        const mensajeInversion = document.getElementById('mensaje-inversion');
+        document.getElementById('btn-limpiar').addEventListener('click', async function(){ document.getElementById('input-cantidad').value=''; document.getElementById('input-capital').value=''; document.getElementById('input-ganancia').value=''; document.getElementById('mensaje').innerHTML=''; try{ await fetch('/api/limpiar_inversion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:selector.value})}); document.getElementById('mensaje').innerHTML='<span class="text-slate-400">🧹 Limpiado</span>'; }catch(err){ document.getElementById('mensaje').innerHTML='<span class="text-red-400">❌ Error</span>'; } });
 
-        async function guardarInversion(cantidad, capital, ganancia) {
-            if (cantidad <= 0 || capital <= 0 || ganancia <= 0) {
-                mensajeInversion.innerHTML = '<span class="text-red-400">⚠️ Todos los campos deben ser mayores a 0</span>';
-                return false;
-            }
-            try {
-                const resp = await fetch('/api/actualizar_inversion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        symbol: currentMoneda,
-                        cantidad: cantidad,
-                        capital_invertido: capital,
-                        ganancia_deseada: ganancia
-                    })
-                });
-                const data = await resp.json();
-                if (data.status === 'ok') {
-                    mensajeInversion.innerHTML = '<span class="text-emerald-400">✅ ' + data.mensaje + '</span>';
-                    document.getElementById('resumen-inversion').classList.remove('hidden');
-                    document.getElementById('resumen-capital').innerText = '$' + capital.toFixed(2);
-                    document.getElementById('resumen-ganancia').innerText = '$' + ganancia.toFixed(2);
-                    document.getElementById('resumen-total').innerText = '$' + (capital + ganancia).toFixed(2);
-                    return true;
-                } else {
-                    mensajeInversion.innerHTML = '<span class="text-red-400">❌ ' + data.mensaje + '</span>';
-                    return false;
-                }
-            } catch (err) {
-                mensajeInversion.innerHTML = '<span class="text-red-400">❌ Error al guardar</span>';
-                return false;
-            }
-        }
+        document.getElementById('btn-alertar-ahora').addEventListener('click', async function(){ this.disabled=true; this.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...'; try{ const resp=await fetch('/api/enviar_alerta',{method:'POST'}); const data=await resp.json(); alert(data.status==='ok'?'✅ Alerta enviada':'❌ '+data.mensaje); }catch(err){ alert('❌ Error'); }finally{ this.disabled=false; this.innerHTML='<i class="fas fa-bell"></i> Alertar ahora'; } });
 
-        document.getElementById('btn-guardar-inversion').addEventListener('click', async function() {
-            const cantidad = parseFloat(document.getElementById('input-cantidad').value) || 0;
-            const capital = parseFloat(document.getElementById('input-capital').value) || 0;
-            const ganancia = parseFloat(document.getElementById('input-ganancia').value) || 0;
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-            await guardarInversion(cantidad, capital, ganancia);
-            this.disabled = false;
-            this.innerHTML = '<i class="fas fa-save"></i> Guardar';
-        });
-
-        document.getElementById('btn-limpiar-inversion').addEventListener('click', async function() {
-            document.getElementById('input-cantidad').value = '';
-            document.getElementById('input-capital').value = '';
-            document.getElementById('input-ganancia').value = '';
-            document.getElementById('resumen-inversion').classList.add('hidden');
-            mensajeInversion.innerHTML = '';
-            try {
-                await fetch('/api/actualizar_inversion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        symbol: currentMoneda,
-                        cantidad: 0,
-                        capital_invertido: 0,
-                        ganancia_deseada: 0
-                    })
-                });
-                mensajeInversion.innerHTML = '<span class="text-slate-400">🧹 Datos limpiados</span>';
-            } catch (err) {
-                mensajeInversion.innerHTML = '<span class="text-red-400">❌ Error al limpiar</span>';
-            }
-        });
-
-        document.getElementById('btn-enviar-alerta-inversion').addEventListener('click', async function() {
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            try {
-                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
-                const data = await resp.json();
-                alert(data.status === 'ok' ? '✅ Alerta enviada con los datos de inversión' : '❌ ' + data.mensaje);
-            } catch (err) {
-                alert('❌ Error al enviar la alerta');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = '<i class="fas fa-bell"></i> Alertar ahora';
-            }
-        });
-
-        // ============================================================
-        //  INICIALIZACIÓN
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            initCharts();
-            console.log('🚀 Página de inversión cargada y lista');
-        });
+        document.addEventListener('DOMContentLoaded', initCharts);
     </script>
 </body>
 </html>

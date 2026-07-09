@@ -306,118 +306,125 @@
 <!-- FIN BLOQUE 1 - ESTRUCTURA HTML + CSS                                 -->
 <!-- ===================================================================== -->
 
-<!-- ===================================================================== -->
-<!-- BLOQUE 2: JAVASCRIPT                                                 -->
-<!-- ===================================================================== -->
-    <script>
-        // ============================================================
-        // MENÚ HAMBURGUESA
-        // ============================================================
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            this.classList.toggle('active');
-            document.getElementById('menuDropdown').classList.toggle('open');
-        });
-        document.addEventListener('click', function(e) {
-            const wrapper = document.querySelector('.menu-wrapper');
-            if (!wrapper.contains(e.target)) {
-                document.getElementById('menuToggle').classList.remove('active');
-                document.getElementById('menuDropdown').classList.remove('open');
-            }
-        });
-
-        // ============================================================
-        // BOTÓN FLOTANTE
-        // ============================================================
-        document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
-            const original = this.innerHTML;
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            try {
-                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
-                const data = await resp.json();
-                alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
-            } catch (err) {
-                alert('❌ Error al enviar la alerta');
-            } finally {
-                this.disabled = false;
-                this.innerHTML = original;
-            }
-        });
-
-        // ============================================================
-        // GRÁFICOS
-        // ============================================================
-        let priceChartInstance = null;
-        let rsiChartInstance = null;
-
-        function initCharts() {
-            const ctxPrice = document.getElementById('priceChart').getContext('2d');
-            const ctxRsi = document.getElementById('rsiChart').getContext('2d');
-
-            priceChartInstance = new Chart(ctxPrice, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Precio (USD)',
-                        data: [],
-                        borderColor: '#818cf8',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 2,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 } }
-                    }
-                }
-            });
-
-            rsiChartInstance = new Chart(ctxRsi, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'RSI',
-                        data: [],
-                        borderColor: '#fbbf24',
-                        backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                        fill: true,
-                        tension: 0.2,
-                        pointRadius: 2,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 } }
-                    }
-                }
-            });
-        }
-
-        // ============================================================
-// SSE - ACTUALIZACIÓN EN TIEMPO REAL
 // ============================================================
+// BLOQUE 2 - JAVASCRIPT (VERSIÓN CON LOGS PARA DEPURAR)
+// ============================================================
+
+console.log('🚀 Iniciando página de inversión...');
+
+// ============================================================
+// MENÚ HAMBURGUESA
+// ============================================================
+document.getElementById('menuToggle').addEventListener('click', function() {
+    this.classList.toggle('active');
+    document.getElementById('menuDropdown').classList.toggle('open');
+});
+document.addEventListener('click', function(e) {
+    const wrapper = document.querySelector('.menu-wrapper');
+    if (!wrapper.contains(e.target)) {
+        document.getElementById('menuToggle').classList.remove('active');
+        document.getElementById('menuDropdown').classList.remove('open');
+    }
+});
+
+// ============================================================
+// BOTÓN FLOTANTE
+// ============================================================
+document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
+    const original = this.innerHTML;
+    this.disabled = true;
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    try {
+        const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
+        const data = await resp.json();
+        alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
+    } catch (err) {
+        alert('❌ Error al enviar la alerta');
+    } finally {
+        this.disabled = false;
+        this.innerHTML = original;
+    }
+});
+
+// ============================================================
+// GRÁFICOS
+// ============================================================
+let priceChartInstance = null;
+let rsiChartInstance = null;
+
+function initCharts() {
+    console.log('📊 Inicializando gráficos...');
+    const ctxPrice = document.getElementById('priceChart').getContext('2d');
+    const ctxRsi = document.getElementById('rsiChart').getContext('2d');
+
+    priceChartInstance = new Chart(ctxPrice, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Precio (USD)',
+                data: [],
+                borderColor: '#818cf8',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.2,
+                pointRadius: 2,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 } }
+            }
+        }
+    });
+
+    rsiChartInstance = new Chart(ctxRsi, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'RSI',
+                data: [],
+                borderColor: '#fbbf24',
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                fill: true,
+                tension: 0.2,
+                pointRadius: 2,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 }, maxTicksLimit: 8 } }
+            }
+        }
+    });
+    console.log('✅ Gráficos inicializados');
+}
+
+// ============================================================
+// SSE - ACTUALIZACIÓN EN TIEMPO REAL (CON LOGS)
+// ============================================================
+console.log('🔄 Conectando a SSE...');
 const estadoConexion = document.getElementById('estado-conexion');
 const selectorMoneda = document.getElementById('selector-moneda-inv');
 const monedaBadge = document.getElementById('moneda-badge-inv');
 const monedaHistorialLabel = document.getElementById('moneda-historial-label');
 let currentMoneda = 'BTCUSDT';
-let allInversiones = {};  // Para almacenar datos de todas las monedas
+let allInversiones = {};
+let primerEvento = true;
 
 function actualizarSelector(monedas, seleccionada) {
+    console.log('🔄 Actualizando selector con:', Object.keys(monedas));
     selectorMoneda.innerHTML = '';
     for (const symbol of Object.keys(monedas)) {
         const nombre = monedas[symbol].nombre || symbol;
@@ -436,13 +443,25 @@ function actualizarSelector(monedas, seleccionada) {
 }
 
 const source = new EventSource('/api/stream');
+
+// Cuando se abre la conexión
+source.onopen = function() {
+    console.log('✅ Conexión SSE establecida');
+    estadoConexion.innerText = 'Conectado';
+};
+
+// Cuando se recibe un mensaje
 source.onmessage = (e) => {
     try {
+        console.log('📩 Datos SSE recibidos:', e.data.substring(0, 200) + '...');
         const data = JSON.parse(e.data);
         const d = data.datos;
         const inversiones = data.inversiones || {};
         const monedaSel = data.moneda_seleccionada || 'BTCUSDT';
         allInversiones = inversiones;
+
+        console.log('📊 Monedas disponibles:', Object.keys(d));
+        console.log('💰 Inversiones:', inversiones);
 
         // Actualizar selector si es necesario
         if (selectorMoneda.options.length === 0) {
@@ -456,7 +475,13 @@ source.onmessage = (e) => {
 
         // ---- TABLA DE INVERSIONES (todas las monedas) ----
         const tbody = document.getElementById('tabla-inversiones');
+        if (!tbody) {
+            console.error('❌ No se encontró el elemento tabla-inversiones');
+            return;
+        }
+
         let html = '';
+        let filasGeneradas = 0;
         for (const symbol of Object.keys(d)) {
             const info = d[symbol] || {};
             const inv = inversiones[symbol] || { cantidad: 0, capital_invertido: 0, ganancia_deseada: 0, alcanzado: false };
@@ -468,9 +493,6 @@ source.onmessage = (e) => {
             const gananciaPorc = capital > 0 ? ((valorActual - capital) / capital) * 100 : 0;
             const metaAlcanzada = inv.alcanzado || false;
             const nombre = info.nombre || symbol.replace('USDT', '');
-
-            // Solo mostrar fila si tiene algún dato o está configurada
-            const tieneDatos = cantidad > 0 || capital > 0 || gananciaDes > 0;
 
             // Preparar badge de meta
             let metaBadge = '';
@@ -513,8 +535,16 @@ source.onmessage = (e) => {
                     </td>
                 </tr>
             `;
+            filasGeneradas++;
         }
+
         tbody.innerHTML = html;
+        console.log(`✅ Tabla generada con ${filasGeneradas} filas`);
+
+        // Si no hay filas, mostrar mensaje
+        if (filasGeneradas === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-slate-500 py-4">No hay datos de monedas disponibles</td></tr>';
+        }
 
         // Asignar eventos a los botones de cada fila
         document.querySelectorAll('.btn-guardar-fila').forEach(btn => {
@@ -529,10 +559,6 @@ source.onmessage = (e) => {
                 if (cantidad < 0 || capital < 0 || ganancia < 0) {
                     msgEl.innerHTML = '<span class="text-red-400">Valores negativos no permitidos</span>';
                     return;
-                }
-                if (cantidad === 0 && capital === 0 && ganancia === 0) {
-                    // Si todo es cero, se puede considerar limpiar
-                    // Pero mejor lo manejamos con el botón limpiar
                 }
 
                 this.disabled = true;
@@ -574,7 +600,6 @@ source.onmessage = (e) => {
                     });
                     const data = await resp.json();
                     if (data.status === 'ok') {
-                        // Limpiar inputs
                         row.querySelector('.input-cantidad').value = '';
                         row.querySelector('.input-capital').value = '';
                         row.querySelector('.input-ganancia').value = '';
@@ -592,7 +617,7 @@ source.onmessage = (e) => {
             });
         });
 
-        // ---- ACTUALIZAR GRÁFICOS E HISTORIAL (para la moneda seleccionada) ----
+        // ---- ACTUALIZAR GRÁFICOS E HISTORIAL ----
         const info = d[currentMoneda] || {};
         const precioActual = info.precio_actual || 0;
         const rsi = info.rsi || 50;
@@ -601,7 +626,6 @@ source.onmessage = (e) => {
         const cantSel = invSel.cantidad || 0;
         const capSel = invSel.capital_invertido || 0;
 
-        // Actualizar gráficos
         if (priceChartInstance) {
             priceChartInstance.data.labels.push(hora);
             priceChartInstance.data.datasets[0].data.push(precioActual);
@@ -622,29 +646,80 @@ source.onmessage = (e) => {
             rsiChartInstance.update('none');
         }
 
-        // Historial detallado
         const historial = data.historial || [];
         const tbodyHist = document.getElementById('historial-detallado');
-        tbodyHist.innerHTML = historial.map(h => {
-            const valorHist = cantSel * h.precio;
-            const gananciaHist = capSel > 0 ? ((valorHist - capSel) / capSel) * 100 : 0;
-            return `
-                <tr>
-                    <td class="py-2 px-3 text-slate-400">${h.fecha}</td>
-                    <td class="py-2 px-3 text-right text-white font-medium">$${h.precio.toLocaleString()}</td>
-                    <td class="py-2 px-3 text-right text-slate-300">$${valorHist.toFixed(2)}</td>
-                    <td class="py-2 px-3 text-right ${gananciaHist >= 0 ? 'text-emerald-400' : 'text-red-400'}">${(gananciaHist > 0 ? '+' : '') + gananciaHist.toFixed(2)}%</td>
-                </tr>
-            `;
-        }).join('') || '<tr><td colspan="4" class="text-center text-slate-500 py-4">No hay datos históricos aún</td></tr>';
+        if (tbodyHist) {
+            tbodyHist.innerHTML = historial.map(h => {
+                const valorHist = cantSel * h.precio;
+                const gananciaHist = capSel > 0 ? ((valorHist - capSel) / capSel) * 100 : 0;
+                return `
+                    <tr>
+                        <td class="py-2 px-3 text-slate-400">${h.fecha}</td>
+                        <td class="py-2 px-3 text-right text-white font-medium">$${h.precio.toLocaleString()}</td>
+                        <td class="py-2 px-3 text-right text-slate-300">$${valorHist.toFixed(2)}</td>
+                        <td class="py-2 px-3 text-right ${gananciaHist >= 0 ? 'text-emerald-400' : 'text-red-400'}">${(gananciaHist > 0 ? '+' : '') + gananciaHist.toFixed(2)}%</td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="4" class="text-center text-slate-500 py-4">No hay datos históricos aún</td></tr>';
+        }
 
         estadoConexion.innerText = 'Conectado';
+        if (primerEvento) {
+            primerEvento = false;
+            console.log('✅ Primer evento SSE procesado correctamente');
+        }
     } catch (error) {
         console.error('❌ Error procesando SSE:', error);
     }
 };
 
 source.onerror = (e) => {
+    console.error('❌ Error en SSE:', e);
     estadoConexion.innerText = '⚠️ Reconectando...';
     console.warn('⚠️ Error en SSE, reintentando automáticamente...');
 };
+
+// ============================================================
+// CAMBIO DE MONEDA
+// ============================================================
+selectorMoneda.addEventListener('change', async function() {
+    const symbol = this.value;
+    console.log('🔄 Cambiando moneda a:', symbol);
+    currentMoneda = symbol;
+    monedaBadge.innerText = symbol.replace('USDT', '');
+    monedaHistorialLabel.innerText = symbol.replace('USDT', '');
+    try {
+        const resp = await fetch('/api/cambiar_moneda', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol })
+        });
+        const data = await resp.json();
+        if (data.status !== 'ok') {
+            console.warn('Error al cambiar moneda:', data.mensaje);
+        }
+        if (priceChartInstance) {
+            priceChartInstance.data.labels = [];
+            priceChartInstance.data.datasets[0].data = [];
+            priceChartInstance.update();
+        }
+        if (rsiChartInstance) {
+            rsiChartInstance.data.labels = [];
+            rsiChartInstance.data.datasets[0].data = [];
+            rsiChartInstance.update();
+        }
+    } catch (err) {
+        console.error('Error al cambiar moneda:', err);
+    }
+});
+
+// ============================================================
+// INICIALIZACIÓN
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM cargado, inicializando...');
+    initCharts();
+    console.log('🚀 Página de inversión cargada (esperando datos SSE)');
+});
+
+console.log('✅ Script completo cargado');

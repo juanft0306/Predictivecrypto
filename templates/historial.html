@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAlert - Historial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body { background: radial-gradient(ellipse at top, #0f172a, #020617); min-height: 100vh; padding: 1.5rem; padding-bottom: 6rem; }
+        .glass-card { background: rgba(30,41,59,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.6); border-color: rgba(99,102,241,0.3); }
+        .btn-gradient { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.3s ease; }
+        .btn-gradient:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(99,102,241,0.4); }
+        .btn-gradient:active { transform: scale(0.98); }
+        .badge-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+        .menu-toggle { cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+        .menu-toggle span { display: block; width: 24px; height: 2px; background: #94a3b8; transition: all 0.3s ease; border-radius: 9999px; }
+        .menu-toggle:hover span { background: #a5b4fc; }
+        .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+        .menu-dropdown { display: none; position: absolute; top: 100%; right: 0; background: rgba(30,41,59,0.95); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); padding: 0.5rem 0; min-width: 180px; z-index: 50; }
+        .menu-dropdown.open { display: block; }
+        .menu-dropdown a { display: block; padding: 0.5rem 1rem; color: #94a3b8; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; }
+        .menu-dropdown a:hover { background: rgba(99,102,241,0.1); color: #a5b4fc; }
+        .menu-dropdown a.active { color: #818cf8; font-weight: 600; }
+        .menu-wrapper { position: relative; }
+        .btn-flotante { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; box-shadow: 0 4px 20px rgba(99,102,241,0.5); padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 1rem; }
+        @media (max-width: 640px) { .btn-flotante { bottom: 1rem; right: 1rem; padding: 0.6rem 1.2rem; font-size: 0.85rem; } }
+        table { width: 100%; font-size: 0.9rem; }
+        th { text-align: left; color: #94a3b8; font-weight: 500; padding: 0.5rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        td { padding: 0.5rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .estado-activa { color: #4ade80; }
+        .estado-alcanzada { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="max-w-6xl mx-auto">
+        <!-- HEADER -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+            <h1 class="text-2xl font-bold text-white"><i class="fas fa-history text-indigo-400 mr-2"></i>CryptoAlert - Historial</h1>
+            <div class="flex items-center gap-3">
+                <div class="menu-wrapper">
+                    <div class="menu-toggle" id="menuToggle">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="menu-dropdown" id="menuDropdown">
+                        <a href="/">Dashboard</a>
+                        <a href="/inversion">Mi Inversión</a>
+                        <a href="/consejos">Consejos</a>
+                        <a href="/historial" class="active">Historial</a>
+                        <a href="/asistente">Asistente</a>
+                    </div>
+                </div>
+                <span class="flex items-center gap-2 text-xs text-slate-400">
+                    <span class="inline-block w-2 h-2 bg-emerald-400 rounded-full badge-pulse"></span>
+                    <span id="estado-conexion" class="hidden sm:inline">Conectado</span>
+                </span>
+            </div>
+        </div>
+
+        <h2 class="text-3xl font-bold text-white mb-6"><i class="fas fa-clock text-slate-400 mr-2"></i>Todas tus inversiones</h2>
+
+        <!-- RESUMEN -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase">Activas</p><p class="text-2xl font-bold text-emerald-400" id="total-activas">0</p></div>
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase">Capital total</p><p class="text-2xl font-bold text-white" id="total-capital">$0.00</p></div>
+            <div class="glass-card rounded-2xl p-5"><p class="text-slate-400 text-xs uppercase">Ganancia total</p><p class="text-2xl font-bold" id="total-ganancia">$0.00</p></div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="glass-card rounded-3xl p-6">
+            <div class="overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr><th>Moneda</th><th>Cantidad</th><th>Capital</th><th>Ganancia deseada</th><th>Valor actual</th><th>Ganancia %</th><th>Estado</th><th>Fecha</th></tr>
+                    </thead>
+                    <tbody id="tabla-historial">
+                        <tr><td colspan="8" class="text-center text-slate-500 py-6">No hay inversiones registradas</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <button id="btn-alerta" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
+        <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
+    </button>
+
+    <script>
+        // Menú
+        document.getElementById('menuToggle').addEventListener('click', function(){ this.classList.toggle('active'); document.getElementById('menuDropdown').classList.toggle('open'); });
+        document.addEventListener('click', function(e){ const w=document.querySelector('.menu-wrapper'); if(!w.contains(e.target)){ document.getElementById('menuToggle').classList.remove('active'); document.getElementById('menuDropdown').classList.remove('open'); } });
+
+        document.getElementById('btn-alerta').addEventListener('click', async function(){ const orig=this.innerHTML; this.disabled=true; this.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...'; try{ const resp=await fetch('/api/enviar_alerta',{method:'POST'}); const data=await resp.json(); alert(data.status==='ok'?'✅ Alerta enviada':'❌ '+data.mensaje); }catch(e){ alert('❌ Error'); }finally{ this.disabled=false; this.innerHTML=orig; } });
+
+        const source=new EventSource('/api/stream');
+        source.onmessage=(e)=>{
+            const data=JSON.parse(e.data);
+            const inversiones=data.inversiones||{};
+            const d=data.datos;
+            let totalActivas=0, totalCapital=0, totalGanancia=0;
+            let html='';
+            for(const [symbol, inv] of Object.entries(inversiones)){
+                if(!inv.cantidad || inv.cantidad===0) continue;
+                const precio=d[symbol]?.precio_actual||0;
+                const valorActual=inv.cantidad*precio;
+                const ganancia=inv.capital>0?((valorActual-inv.capital)/inv.capital)*100:0;
+                const alcanzado=inv.alcanzado||false;
+                totalActivas+=1;
+                totalCapital+=inv.capital||0;
+                const gananciaEnUsd=valorActual-(inv.capital||0);
+                totalGanancia+=gananciaEnUsd;
+                const estado=alcanzado?'Alcanzada':'Activa';
+                const estadoClass=alcanzado?'estado-alcanzada':'estado-activa';
+                html+=`<tr><td class="font-bold text-white">${d[symbol]?.nombre||symbol}</td><td>${inv.cantidad.toFixed(8)}</td><td>$${(inv.capital||0).toFixed(2)}</td><td>$${(inv.ganancia_deseada||0).toFixed(2)}</td><td>$${valorActual.toFixed(2)}</td><td class="${ganancia>=0?'text-emerald-400':'text-red-400'}">${(ganancia>0?'+':'')+ganancia.toFixed(2)}%</td><td class="${estadoClass}">${estado}</td><td class="text-slate-500 text-sm">${inv.creado?.slice(0,10)||'--'}</td></tr>`;
+            }
+            document.getElementById('tabla-historial').innerHTML=html||'<tr><td colspan="8" class="text-center text-slate-500 py-6">No hay inversiones registradas</td></tr>';
+            document.getElementById('total-activas').innerText=totalActivas;
+            document.getElementById('total-capital').innerText='$'+totalCapital.toFixed(2);
+            document.getElementById('total-ganancia').innerText='$'+totalGanancia.toFixed(2);
+        };
+    </script>
+</body>
+</html>

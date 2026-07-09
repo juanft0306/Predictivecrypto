@@ -1,5 +1,9 @@
 <!-- ===================================================================== -->
-<!-- BLOQUE 1 - HTML + CSS - recomendaciones.html                         -->
+<!-- INICIO - templates/recomendaciones.html                              -->
+<!-- ===================================================================== -->
+
+<!-- ===================================================================== -->
+<!-- BLOQUE 1: ESTRUCTURA HTML + CSS                                      -->
 <!-- ===================================================================== -->
 <!DOCTYPE html>
 <html lang="es">
@@ -84,6 +88,31 @@
             border-radius: 9999px;
             font-size: 1rem;
         }
+        .btn-enviar-resumen {
+            background: #6366f1;
+            color: white;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+        .btn-enviar-resumen:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+        }
+        .btn-enviar-resumen:active { transform: scale(0.95); }
+        .btn-enviar-resumen:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
         .probabilidad-bar {
             height: 6px;
             background: #1e293b;
@@ -96,11 +125,39 @@
             border-radius: 9999px;
             transition: width 0.5s ease;
         }
+        .header-recomendaciones {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .header-recomendaciones .titulo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .header-recomendaciones .acciones {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 640px) {
+            .header-recomendaciones .acciones {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .btn-enviar-resumen {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="max-w-6xl mx-auto">
-        <!-- HEADER -->
+        <!-- HEADER PRINCIPAL -->
         <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-4">
                 <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
@@ -125,19 +182,23 @@
             </div>
         </div>
 
-        <!-- TABLA -->
+        <!-- TABLA DE RECOMENDACIONES -->
         <div class="glass-card rounded-3xl p-6">
-            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-lightbulb text-amber-400"></i> Señales de trading
-                </h2>
-                <div class="flex gap-2">
-                    <button id="btn-enviar-resumen" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-sm shadow-lg flex items-center gap-2">
-                        <i class="fas fa-bell"></i> Enviar resumen
+            <!-- HEADER DE LA TABLA CON BOTÓN EN ESQUINA SUPERIOR DERECHA -->
+            <div class="header-recomendaciones mb-4">
+                <div class="titulo">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-amber-400"></i> Señales de trading
+                    </h2>
+                </div>
+                <div class="acciones">
+                    <button id="btn-enviar-resumen" class="btn-enviar-resumen">
+                        <i class="fas fa-bell"></i> <span>Enviar resumen</span>
                     </button>
                     <span class="text-xs text-slate-500" id="ultima-actualizacion">Actualizando...</span>
                 </div>
             </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
@@ -153,24 +214,29 @@
                         </tr>
                     </thead>
                     <tbody id="tabla-recomendaciones">
-                        <!-- JS -->
+                        <!-- JS llena -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <!-- BOTÓN FLOTANTE (alerta general) -->
     <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
         <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
     </button>
+
 <!-- ===================================================================== -->
-<!-- FIN BLOQUE 1 - HTML + CSS - recomendaciones.html                     -->
+<!-- FIN BLOQUE 1 - ESTRUCTURA HTML + CSS                                 -->
 <!-- ===================================================================== -->
-    <!-- ===================================================================== -->
-<!-- BLOQUE 2 - JAVASCRIPT - recomendaciones.html                         -->
+
+<!-- ===================================================================== -->
+<!-- BLOQUE 2: JAVASCRIPT                                                 -->
 <!-- ===================================================================== -->
     <script>
-        // Menú
+        // ============================================================
+        // MENÚ HAMBURGUESA
+        // ============================================================
         document.getElementById('menuToggle').addEventListener('click', function() {
             this.classList.toggle('active');
             document.getElementById('menuDropdown').classList.toggle('open');
@@ -183,7 +249,9 @@
             }
         });
 
-        // Botón alerta flotante
+        // ============================================================
+        // BOTÓN FLOTANTE (alerta general)
+        // ============================================================
         document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
             const original = this.innerHTML;
             this.disabled = true;
@@ -200,7 +268,9 @@
             }
         });
 
-        // Enviar resumen de recomendaciones
+        // ============================================================
+        // BOTÓN "ENVIAR RESUMEN" (esquina superior derecha)
+        // ============================================================
         document.getElementById('btn-enviar-resumen').addEventListener('click', async function() {
             const original = this.innerHTML;
             this.disabled = true;
@@ -217,7 +287,9 @@
             }
         });
 
-        // SSE
+        // ============================================================
+        // SSE - RECEPCIÓN DE DATOS EN TIEMPO REAL
+        // ============================================================
         const source = new EventSource('/api/stream');
         source.onmessage = (e) => {
             try {
@@ -275,8 +347,12 @@
         };
         source.onerror = () => console.warn('SSE reconectando...');
     </script>
+<!-- ===================================================================== -->
+<!-- FIN BLOQUE 2 - JAVASCRIPT                                            -->
+<!-- ===================================================================== -->
+
 </body>
 </html>
 <!-- ===================================================================== -->
-<!-- FIN BLOQUE 2 - JAVASCRIPT - recomendaciones.html                     -->
+<!-- FIN - templates/recomendaciones.html                                 -->
 <!-- ===================================================================== -->

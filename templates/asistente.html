@@ -1,0 +1,372 @@
+<!-- ===================================================================== -->
+<!-- INICIO - templates/asistente.html                                     -->
+<!-- ===================================================================== -->
+
+<!-- ===================================================================== -->
+<!-- BLOQUE 1: ESTRUCTURA HTML + CSS                                      -->
+<!-- ===================================================================== -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CryptoAlert - Asistente Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            background: radial-gradient(ellipse at top, #0f172a, #020617);
+            min-height: 100vh;
+            padding: 1.5rem;
+            padding-bottom: 6rem;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(99,102,241,0.3);
+        }
+        .chat-bubble-user {
+            background: rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 18px 18px 4px 18px;
+            padding: 0.8rem 1.2rem;
+            max-width: 80%;
+            margin-left: auto;
+        }
+        .chat-bubble-bot {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 18px 18px 18px 4px;
+            padding: 0.8rem 1.2rem;
+            max-width: 80%;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover { transform: scale(1.02); }
+        .btn-gradient:active { transform: scale(0.98); }
+        .menu-toggle {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #94a3b8;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+        }
+        .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(30,41,59,0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 0.5rem 0;
+            min-width: 150px;
+            z-index: 50;
+        }
+        .menu-dropdown.open { display: block; }
+        .menu-dropdown a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .menu-dropdown a:hover { background: rgba(99,102,241,0.1); color: #a5b4fc; }
+        .menu-dropdown a.active { color: #818cf8; font-weight: 600; }
+        .menu-wrapper { position: relative; }
+        .btn-flotante {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-size: 1rem;
+        }
+        #chat-container {
+            height: 400px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        #chat-container::-webkit-scrollbar { width: 4px; }
+        #chat-container::-webkit-scrollbar-track { background: #1e293b; }
+        #chat-container::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 9999px; }
+        input:focus, textarea:focus { outline: none; }
+    </style>
+</head>
+<body>
+    <div class="max-w-4xl mx-auto">
+        <!-- HEADER -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-4">
+                <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    <i class="fas fa-robot text-indigo-400 mr-2"></i>Asistente
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="menu-wrapper">
+                    <div class="menu-toggle" id="menuToggle">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="menu-dropdown" id="menuDropdown">
+                        <a href="/">Dashboard</a>
+                        <a href="/inversion">Mi Inversión</a>
+                        <a href="/recomendaciones">Recomendaciones</a>
+                        <a href="/asistente" class="active">Asistente</a>
+                    </div>
+                </div>
+                <span class="hidden sm:inline-block text-xs text-slate-400">
+                    <i class="fas fa-circle text-emerald-400 text-xs mr-1"></i> Conectado
+                </span>
+            </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="glass-card rounded-3xl p-6">
+            <div id="chat-container" class="space-y-4 mb-4">
+                <div class="chat-bubble-bot text-slate-300 text-sm">
+                    👋 ¡Hola! Soy tu asistente cripto. Pregúntame sobre criptomonedas, indicadores, trading o cómo usar la app. Si no sé algo, lo guardaré para que el equipo lo revise.
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <input type="text" id="input-pregunta" placeholder="Escribe tu pregunta..."
+                       class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-indigo-500">
+                <button id="btn-enviar-pregunta" class="btn-gradient text-white font-bold px-6 rounded-xl flex items-center gap-2 shadow-lg">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">
+                <i class="fas fa-info-circle mr-1"></i> Las preguntas no respondidas se guardan automáticamente para revisión.
+            </p>
+        </div>
+
+        <!-- ADMIN: PREGUNTAS PENDIENTES -->
+        <div class="mt-6 glass-card rounded-3xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-white font-semibold flex items-center gap-2">
+                    <i class="fas fa-list text-amber-400"></i> Preguntas pendientes
+                </h3>
+                <button id="btn-cargar-pendientes" class="text-xs text-indigo-400 hover:text-indigo-300">
+                    <i class="fas fa-sync-alt mr-1"></i> Actualizar
+                </button>
+            </div>
+            <div id="lista-pendientes" class="text-sm text-slate-400 space-y-2 max-h-60 overflow-y-auto">
+                <p class="text-slate-500">Carga las preguntas pendientes para verlas aquí.</p>
+            </div>
+            <!-- Formulario para responder -->
+            <div id="form-responder" class="mt-4 hidden">
+                <input type="text" id="input-pregunta-pendiente" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mb-2" placeholder="Pregunta">
+                <textarea id="input-respuesta-pendiente" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm mb-2" placeholder="Escribe la respuesta..."></textarea>
+                <button id="btn-guardar-respuesta" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-4 rounded-lg text-sm">
+                    <i class="fas fa-save mr-1"></i> Guardar respuesta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTÓN FLOTANTE -->
+    <button id="btn-alerta-flotante" class="btn-flotante btn-gradient text-white font-bold shadow-lg flex items-center gap-2">
+        <i class="fas fa-paper-plane"></i> <span>Enviar alerta</span>
+    </button>
+
+<!-- ===================================================================== -->
+<!-- FIN BLOQUE 1 - ESTRUCTURA HTML + CSS                                 -->
+<!-- ===================================================================== -->
+
+<!-- ===================================================================== -->
+<!-- BLOQUE 2: JAVASCRIPT                                                 -->
+<!-- ===================================================================== -->
+    <script>
+        // ============================================================
+        // MENÚ HAMBURGUESA
+        // ============================================================
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.getElementById('menuDropdown').classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.menu-wrapper');
+            if (!wrapper.contains(e.target)) {
+                document.getElementById('menuToggle').classList.remove('active');
+                document.getElementById('menuDropdown').classList.remove('open');
+            }
+        });
+
+        // ============================================================
+        // BOTÓN FLOTANTE
+        // ============================================================
+        document.getElementById('btn-alerta-flotante').addEventListener('click', async function() {
+            const original = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                const resp = await fetch('/api/enviar_alerta', { method: 'POST' });
+                const data = await resp.json();
+                alert(data.status === 'ok' ? '✅ Alerta enviada' : '❌ ' + data.mensaje);
+            } catch (err) {
+                alert('❌ Error al enviar la alerta');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = original;
+            }
+        });
+
+        // ============================================================
+        // CHAT ASISTENTE
+        // ============================================================
+        const chatContainer = document.getElementById('chat-container');
+        const inputPregunta = document.getElementById('input-pregunta');
+        const btnEnviar = document.getElementById('btn-enviar-pregunta');
+
+        function agregarMensaje(texto, esUsuario) {
+            const div = document.createElement('div');
+            div.className = esUsuario ? 'chat-bubble-user text-white text-sm' : 'chat-bubble-bot text-slate-300 text-sm';
+            div.innerHTML = texto.replace(/\n/g, '<br>');
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function enviarPregunta() {
+            const pregunta = inputPregunta.value.trim();
+            if (!pregunta) return;
+            inputPregunta.value = '';
+            agregarMensaje('👤 ' + pregunta, true);
+            agregarMensaje('🤖 Pensando...', false);
+
+            try {
+                const resp = await fetch('/api/asistente', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pregunta })
+                });
+                const data = await resp.json();
+                const mensajes = chatContainer.querySelectorAll('.chat-bubble-bot');
+                if (mensajes.length > 0) {
+                    mensajes[mensajes.length - 1].innerHTML = '🤖 ' + data.respuesta.replace(/\n/g, '<br>');
+                } else {
+                    agregarMensaje('🤖 ' + data.respuesta, false);
+                }
+            } catch (err) {
+                const mensajes = chatContainer.querySelectorAll('.chat-bubble-bot');
+                if (mensajes.length > 0) {
+                    mensajes[mensajes.length - 1].innerHTML = '🤖 ❌ Error al conectar con el asistente.';
+                }
+            }
+        }
+
+        btnEnviar.addEventListener('click', enviarPregunta);
+        inputPregunta.addEventListener('keydown', (e) => { if (e.key === 'Enter') enviarPregunta(); });
+
+        // ============================================================
+        // GESTIÓN DE PREGUNTAS PENDIENTES (ADMIN)
+        // ============================================================
+        const listaPendientes = document.getElementById('lista-pendientes');
+        const formResponder = document.getElementById('form-responder');
+        const inputPreguntaPend = document.getElementById('input-pregunta-pendiente');
+        const inputRespuestaPend = document.getElementById('input-respuesta-pendiente');
+        const btnGuardarRespuesta = document.getElementById('btn-guardar-respuesta');
+
+        async function cargarPendientes() {
+            try {
+                const resp = await fetch('/api/preguntas_pendientes');
+                const data = await resp.json();
+                if (data.status === 'ok') {
+                    const pendientes = data.preguntas.filter(p => !p.respondida);
+                    if (pendientes.length === 0) {
+                        listaPendientes.innerHTML = '<p class="text-slate-500">✅ No hay preguntas pendientes.</p>';
+                        formResponder.classList.add('hidden');
+                        return;
+                    }
+                    let html = '';
+                    pendientes.forEach((p, idx) => {
+                        html += `<div class="flex justify-between items-center border-b border-slate-700/30 py-2">
+                            <span class="text-slate-300">${p.pregunta}</span>
+                            <button class="text-xs text-indigo-400 hover:text-indigo-300 btn-responder" data-index="${idx}" data-pregunta="${p.pregunta}">
+                                <i class="fas fa-reply"></i> Responder
+                            </button>
+                        </div>`;
+                    });
+                    listaPendientes.innerHTML = html;
+
+                    document.querySelectorAll('.btn-responder').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const pregunta = this.dataset.pregunta;
+                            inputPreguntaPend.value = pregunta;
+                            inputRespuestaPend.value = '';
+                            formResponder.classList.remove('hidden');
+                            formResponder.scrollIntoView({ behavior: 'smooth' });
+                        });
+                    });
+                }
+            } catch (err) {
+                listaPendientes.innerHTML = '<p class="text-red-400">❌ Error al cargar pendientes.</p>';
+            }
+        }
+
+        document.getElementById('btn-cargar-pendientes').addEventListener('click', cargarPendientes);
+
+        btnGuardarRespuesta.addEventListener('click', async function() {
+            const pregunta = inputPreguntaPend.value.trim();
+            const respuesta = inputRespuestaPend.value.trim();
+            if (!pregunta || !respuesta) {
+                alert('Completa ambos campos.');
+                return;
+            }
+            try {
+                const resp = await fetch('/api/responder_pregunta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pregunta, respuesta })
+                });
+                const data = await resp.json();
+                if (data.status === 'ok') {
+                    alert('✅ Respuesta guardada. La IA ahora podrá responder esa pregunta.');
+                    formResponder.classList.add('hidden');
+                    cargarPendientes();
+                } else {
+                    alert('❌ ' + data.mensaje);
+                }
+            } catch (err) {
+                alert('❌ Error al guardar la respuesta.');
+            }
+        });
+
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        cargarPendientes();
+        console.log('🚀 Asistente cargado y listo');
+    </script>
+<!-- ===================================================================== -->
+<!-- FIN BLOQUE 2 - JAVASCRIPT                                            -->
+<!-- ===================================================================== -->
+
+</body>
+</html>
+<!-- ===================================================================== -->
+<!-- FIN - templates/asistente.html                                       -->
+<!-- ===================================================================== -->

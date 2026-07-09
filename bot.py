@@ -1,21 +1,28 @@
-from datetime import datetime
 import time
 import requests
 import config
+from analisis import calcular_todos
+from probabilidad import calcular_prob_subida
+from recomendaciones import generar_recomendacion
+from inversion import cargar, guardar, marcar_alcanzado
+from utils import hora_ve, hora_utc
 
-HISTORIAL_MAX = 5
-INTERVALO_ACTUALIZACION = 10
+INTERVALO = 5
 
-ultimo_estado_rsi = {}
-ultima_variacion_alerta = {}
+# Estados para evitar duplicados
+ult_rsi = {}
+ult_var = {}
+ult_recom = {}
+ult_prob = {}
 
-for moneda in config.MONEDAS:
-    ultimo_estado_rsi[moneda] = None
-    ultima_variacion_alerta[moneda] = False
+for m in config.MONEDAS:
+    ult_rsi[m] = None
+    ult_var[m] = False
+    ult_recom[m] = None
+    ult_prob[m] = False
 
-def enviar_alerta_telegram(mensaje):
+def enviar_telegram(mensaje):
     if not config.TOKEN_TELEGRAM or not config.CHAT_ID_TELEGRAM:
-        config.logger.warning("Credenciales de Telegram no configuradas.")
         return
     url = f"https://api.telegram.org/bot{config.TOKEN_TELEGRAM}/sendMessage"
     payload = {
@@ -24,240 +31,159 @@ def enviar_alerta_telegram(mensaje):
         "parse_mode": "Markdown"
     }
     try:
-        resp = requests.post(url, json=payload, timeout=5)
-        if resp.status_code != 200:
-            config.logger.error(f"Error al enviar alerta: {resp.text}")
-    except Exception as e:
-        config.logger.error(f"Excepción al enviar alerta: {e}")
+        requests.post(url, json=payload, timeout=5)
+    except:
+        pass
 
-def obtener_todos_los_tickers():
+def obtener_tickers():
     url = "https://api.binance.us/api/v3/ticker/24hr"
     try:
-        resp = requests.get(url, timeout=5)
+        resp = requests.get(url, timeout=10)
         if resp.status_code == 200:
             data = resp.json()
             tickers = {}
             for item in data:
-                symbol = item['symbol']
-                if symbol in config.MONEDAS:
-                    tickers[symbol] = {
-                        "lastPrice": float(item['lastPrice']),
-                        "priceChangePercent": float(item['priceChangePercent'])
+                if item['symbol'] in config.MONEDAS:
+                    tickers[item['symbol']] = {
+                        "precio": float(item['lastPrice']),
+                        "variacion": float(item['priceChangePercent'])
                     }
             return tickers
-        else:
-            config.logger.warning(f"Ticker 24h respondió con código {resp.status_code}")
-    except Exception as e:
-        config.logger.error(f"Error en ticker 24h: {e}")
+    except:
+        pass
     return None
 
-def obtener_velas(symbol):
-    endpoints = [
-        f"https://api.binance.us/api/v3/klines?symbol={symbol}&interval=1d&limit=15",
-        f"https://api.mexc.com/api/v3/klines?symbol={symbol}&interval=1d&limit=15"
-    ]
-    for url in endpoints:
-        try:
-            resp = requests.get(url, timeout=5)
-            if resp.status_code == 200:
-                datos = resp.json()
-                if len(datos) >= 2:
-                    return [float(dia[4]) for dia in datos]
-                else:
-                    config.logger.warning(f"{url} devolvió solo {len(datos)} velas.")
-            else:
-                config.logger.warning(f"{url} respondió con código {resp.status_code}")
-        except Exception as e:
-            config.logger.error(f"Error en {url}: {e}")
+def obtener_velas(symbol, limit=200):
+    url = f"https://api.binance.us/api/v3/klines?symbol={symbol}&interval=1d&limit={limit}"
+    try:
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            return [float(v[4]) for v in data]
+    except:
+        pass
     return None
 
-def calcular_rsi(precios):
-    if not precios or len(precios) < 15:
-        return 50.0
-    cambios = [precios[i] - precios[i-1] for i in range(1, len(precios))]
-    cambios_ultimos = cambios[-14:] if len(cambios) >= 14 else cambios
-    ganancias = [c for c in cambios_ultimos if c > 0] or [0]
-    perdidas = [abs(c) for c in cambios_ultimos if c < 0] or [0]
-    n = len(cambios_ultimos)
-    prom_ganancias = sum(ganancias) / n
-    prom_perdidas = sum(perdidas) / n
-    if prom_perdidas == 0:
-        return 100.0
-    rs = prom_ganancias / prom_perdidas
-    return 100 - (100 / (1 + rs))
+def analizar():
+    global ult_rsi, ult_var, ult_recom, ult_prob
 
-def analizar_mercado():
-    global ultimo_estado_rsi, ultima_variacion_alerta
-
-    tickers = obtener_todos_los_tickers()
+    tickers = obtener_tickers()
     if not tickers:
-        config.logger.error("No se obtuvieron tickers de Binance.")
         return
 
-    ahora_ve = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
-    hora_utc = datetime.utcnow().strftime("%H:%M:%S UTC")
+    ahora_ve = hora_ve()
+    ahora_utc = hora_utc()
+
+    inversiones = cargar()
 
     for symbol in config.MONEDAS:
         if symbol not in tickers:
-            config.logger.warning(f"No hay datos para {symbol}, se salta.")
             continue
 
-        ticker = tickers[symbol]
-        precio = ticker["lastPrice"]
-        variacion = ticker["priceChangePercent"]
+        datos = tickers[symbol]
+        precio = datos["precio"]
+        variacion = datos["variacion"]
 
-        precios = obtener_velas(symbol)
-        rsi = calcular_rsi(precios) if precios else 50.0
+        precios = obtener_velas(symbol, 200)
+        if not precios or len(precios) < 30:
+            continue
+
+        ind = calcular_todos(precios)
+        prob_subida = calcular_prob_subida(precios)
+        prob_bajada = 100 - prob_subida
+        recom, color, emoji = generar_recomendacion(ind, prob_subida, precio)
 
         config.datos_mercado[symbol].update({
             "precio_actual": precio,
             "variacion": variacion,
-            "rsi": rsi,
-            "ultima_actualizacion": hora_utc,
+            "rsi": ind["rsi"],
+            "prob_subida": prob_subida,
+            "prob_bajada": prob_bajada,
+            "recomendacion": recom,
+            "ultima_actualizacion": ahora_utc,
             "hora_venezuela": ahora_ve
         })
 
-        # --- LÓGICA DE INVERSIÓN ---
-        inv = config.inversiones.get(symbol, {})
-        cantidad = inv.get("cantidad", 0)
-        capital = inv.get("capital_invertido", 0)      # Ahora es el real, ingresado por el usuario
-        ganancia_deseada = inv.get("ganancia_deseada", 0)
+        # ALERTAS
 
-        if cantidad > 0 and capital > 0 and ganancia_deseada > 0:
-            valor_actual = cantidad * precio
-            monto_total_deseado = capital + ganancia_deseada
-            precio_objetivo = monto_total_deseado / cantidad
-            ganancia_actual = ((valor_actual - capital) / capital) * 100
-
-            config.datos_mercado[symbol].update({
-                "capital_invertido": capital,
-                "ganancia_deseada": ganancia_deseada,
-                "monto_total_deseado": monto_total_deseado,
-                "precio_objetivo": precio_objetivo,
-                "valor_actual_inversion": valor_actual,
-                "ganancia_actual": ganancia_actual
-            })
-
-            # Alerta de meta alcanzada
-            if valor_actual >= monto_total_deseado and not inv.get("alcanzado", False):
-                nombre_completo = config.NOMBRES_MONEDAS.get(symbol, symbol)
-                abreviatura = symbol.replace('USDT', '')
-                tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
-                mensaje = (
-                    f"🎯 *¡META ALCANZADA en {nombre_completo} ({abreviatura})!*\n"
-                    f"💰 Capital invertido: ${capital:,.2f}\n"
-                    f"🎯 Ganancia deseada: ${ganancia_deseada:,.2f}\n"
-                    f"💵 Valor actual: ${valor_actual:,.2f}\n"
-                    f"📈 Ganancia real: {ganancia_actual:+.2f}%\n"
-                    f"📊 Precio actual: ${precio:,.2f}\n"
-                    f"📉 Tendencia: {tendencia}\n"
-                    f"🕒 Hora local: {ahora_ve}"
-                )
-                enviar_alerta_telegram(mensaje)
-                config.inversiones[symbol]["alcanzado"] = True
-
-        # --- ALERTAS DE VARIACIÓN Y RSI ---
-        nombre_completo = config.NOMBRES_MONEDAS.get(symbol, symbol)
-        abreviatura = symbol.replace('USDT', '')
-        tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
-
-        if abs(variacion) >= config.VARIACION_ALERTA and not ultima_variacion_alerta[symbol]:
-            signo = "+" if variacion > 0 else ""
-            mensaje = (
-                f"📊 *{nombre_completo} ({abreviatura}) - Variación significativa*\n"
-                f"💰 Precio: ${precio:,.2f}\n"
-                f"📈 Cambio 24h: {signo}{variacion:.2f}% ({tendencia})\n"
-                f"🕒 Hora local: {ahora_ve}"
-            )
-            enviar_alerta_telegram(mensaje)
-            ultima_variacion_alerta[symbol] = True
+        # 1. Variación brusca
+        if abs(variacion) >= config.VARIACION_ALERTA and not ult_var[symbol]:
+            signo = "+" if variacion >= 0 else ""
+            msg = f"[📊 DASHBOARD] *{config.NOMBRES.get(symbol, symbol)} ({symbol.replace('USDT','')})*\n💰 ${precio:,.2f}\n📈 {signo}{variacion:.2f}%\n🕒 {ahora_ve}"
+            enviar_telegram(msg)
+            ult_var[symbol] = True
         elif abs(variacion) < config.VARIACION_ALERTA:
-            ultima_variacion_alerta[symbol] = False
+            ult_var[symbol] = False
 
-        estado_rsi = "Neutral"
-        if rsi < config.RSI_SOBREVENTA:
-            estado_rsi = "Sobrevendido"
-        elif rsi > config.RSI_SOBRECOMPRA:
-            estado_rsi = "Sobrecomprado"
+        # 2. RSI
+        estado = "Neutral"
+        if ind["rsi"] < config.RSI_SOBREVENTA:
+            estado = "Sobrevendido"
+        elif ind["rsi"] > config.RSI_SOBRECOMPRA:
+            estado = "Sobrecomprado"
 
-        if estado_rsi != "Neutral" and ultimo_estado_rsi[symbol] != estado_rsi:
-            emoji = "🔴" if estado_rsi == "Sobrevendido" else "🟢"
-            mensaje = (
-                f"{emoji} *{nombre_completo} ({abreviatura}) - Señal de RSI*\n"
-                f"📊 RSI: {rsi:.2f} ({estado_rsi})\n"
-                f"💰 Precio: ${precio:,.2f}\n"
-                f"📈 Tendencia: {tendencia}\n"
-                f"🕒 Hora local: {ahora_ve}"
-            )
-            enviar_alerta_telegram(mensaje)
-            ultimo_estado_rsi[symbol] = estado_rsi
-        elif estado_rsi == "Neutral":
-            ultimo_estado_rsi[symbol] = None
+        if estado != "Neutral" and ult_rsi[symbol] != estado:
+            emoji_rsi = "🔴" if estado == "Sobrevendido" else "🟢"
+            msg = f"[📊 DASHBOARD] {emoji_rsi} *{config.NOMBRES.get(symbol, symbol)}*\n📊 RSI: {ind['rsi']:.2f} ({estado})\n💰 ${precio:,.2f}\n🕒 {ahora_ve}"
+            enviar_telegram(msg)
+            ult_rsi[symbol] = estado
+        elif estado == "Neutral":
+            ult_rsi[symbol] = None
 
-    # Historial para la moneda seleccionada
-    moneda_sel = config.moneda_seleccionada
+        # 3. Recomendación
+        if recom != ult_recom[symbol]:
+            msg = f"[💡 CONSEJO] *{config.NOMBRES.get(symbol, symbol)}*\n📊 {emoji} {recom}\n📈 Subida: {prob_subida:.1f}% | 📉 Bajada: {prob_bajada:.1f}%\n💰 ${precio:,.2f}\n🕒 {ahora_ve}"
+            enviar_telegram(msg)
+            ult_recom[symbol] = recom
+
+        # 4. Probabilidad extrema
+        if prob_subida >= config.PROB_ALERTA and not ult_prob[symbol]:
+            msg = f"[💡 SEÑAL FUERTE] *{config.NOMBRES.get(symbol, symbol)}*\n🚀 Prob. Subida: {prob_subida:.1f}%\n📊 {recom}\n💰 ${precio:,.2f}\n🕒 {ahora_ve}"
+            enviar_telegram(msg)
+            ult_prob[symbol] = True
+        elif prob_bajada >= config.PROB_ALERTA and not ult_prob[symbol]:
+            msg = f"[💡 SEÑAL FUERTE] *{config.NOMBRES.get(symbol, symbol)}*\n🔻 Prob. Bajada: {prob_bajada:.1f}%\n📊 {recom}\n💰 ${precio:,.2f}\n🕒 {ahora_ve}"
+            enviar_telegram(msg)
+            ult_prob[symbol] = True
+        elif prob_subida < 70 and prob_bajada < 70:
+            ult_prob[symbol] = False
+
+        # 5. Inversión: meta alcanzada
+        inv = inversiones.get(symbol, {})
+        if inv.get("cantidad", 0) > 0 and inv.get("capital", 0) > 0 and inv.get("ganancia_deseada", 0) > 0:
+            capital = inv["capital"]
+            ganancia_deseada = inv["ganancia_deseada"]
+            cantidad = inv["cantidad"]
+            valor_actual = cantidad * precio
+            meta = capital + ganancia_deseada
+
+            if valor_actual >= meta and not inv.get("alcanzado", False):
+                ganancia_real = ((valor_actual - capital) / capital) * 100
+                msg = f"[💰 INVERSIÓN] 🎯 *¡META ALCANZADA en {config.NOMBRES.get(symbol, symbol)}!*\n💰 Capital: ${capital:,.2f}\n🎯 Ganancia deseada: ${ganancia_deseada:,.2f}\n💵 Valor actual: ${valor_actual:,.2f}\n📈 Ganancia: {ganancia_real:+.2f}%\n🕒 {ahora_ve}"
+                enviar_telegram(msg)
+                marcar_alcanzado(symbol)
+
+    # Historial de precios para gráficos
+    moneda_sel = config.moneda_seleccionada if hasattr(config, 'moneda_seleccionada') else "BTCUSDT"
     if moneda_sel in config.datos_mercado:
         precio_sel = config.datos_mercado[moneda_sel]["precio_actual"]
-        rsi_sel = config.datos_mercado[moneda_sel].get("rsi", 50.0)
-
-        if (len(config.historial_analisis) == 0 or
-            config.historial_analisis[0]["precio"] != precio_sel):
-            estado_rsi_sel = "Neutral"
-            if rsi_sel < 30:
-                estado_rsi_sel = "Sobrevendido"
-            elif rsi_sel > 70:
-                estado_rsi_sel = "Sobrecomprado"
-            config.historial_analisis.insert(0, {
-                "fecha": ahora_ve,
-                "precio": precio_sel,
-                "estado": estado_rsi_sel
-            })
-            if len(config.historial_analisis) > HISTORIAL_MAX:
-                config.historial_analisis.pop()
+        rsi_sel = config.datos_mercado[moneda_sel]["rsi"]
+        config.historial_precios.append({
+            "fecha": ahora_ve,
+            "precio": precio_sel,
+            "rsi": rsi_sel
+        })
+        if len(config.historial_precios) > 100:
+            config.historial_precios.pop(0)
 
     config.actualizacion_event.set()
-    config.logger.info(f"Datos actualizados para {len(config.MONEDAS)} monedas.")
+    config.logger.info(f"Datos actualizados para {len(config.MONEDAS)} monedas")
 
-def enviar_alerta_manual():
-    ahora_ve = datetime.now(config.ZONA_VE).strftime("%I:%M:%S %p")
-    mensaje = f"📊 *Resumen CryptoAlert*\n🕒 Última actualización: {ahora_ve}\n\n"
-
-    for symbol in config.MONEDAS:
-        datos = config.datos_mercado.get(symbol, {})
-        precio = datos.get("precio_actual", 0)
-        variacion = datos.get("variacion", 0)
-        rsi = datos.get("rsi", 50)
-        nombre = config.NOMBRES_MONEDAS.get(symbol, symbol)
-        abrev = symbol.replace('USDT', '')
-        tendencia = "📈 ALTA" if variacion >= 0 else "📉 BAJA"
-        mensaje += f"• *{nombre} ({abrev})*: ${precio:,.2f}  ({variacion:+.2f}%)  {tendencia}  RSI: {rsi:.2f}\n"
-
-    inversiones_activas = False
-    for symbol, inv in config.inversiones.items():
-        if inv["cantidad"] > 0 and inv["capital_invertido"] > 0 and inv["ganancia_deseada"] > 0:
-            inversiones_activas = True
-            nombre = config.NOMBRES_MONEDAS.get(symbol, symbol)
-            abrev = symbol.replace('USDT', '')
-            precio_act = config.datos_mercado.get(symbol, {}).get("precio_actual", 0)
-            valor = inv["cantidad"] * precio_act
-            ganancia = ((valor - inv["capital_invertido"]) / inv["capital_invertido"]) * 100
-            mensaje += f"\n💰 *{nombre} ({abrev}) - Inversión:*\n"
-            mensaje += f"  Capital: ${inv['capital_invertido']:,.2f}\n"
-            mensaje += f"  Ganancia deseada: ${inv['ganancia_deseada']:,.2f}\n"
-            mensaje += f"  Valor actual: ${valor:,.2f}\n"
-            mensaje += f"  Ganancia: {ganancia:+.2f}%"
-
-    if not inversiones_activas:
-        mensaje += "\n🔹 Sin inversiones configuradas."
-
-    enviar_alerta_telegram(mensaje)
-    config.logger.info("Alerta manual enviada.")
-
-def bucle_bot():
-    config.logger.info("🤖 Bot de análisis multi-moneda iniciado.")
+def bucle():
+    config.logger.info("🤖 Bot iniciado")
     while True:
         try:
-            analizar_mercado()
+            analizar()
         except Exception as e:
-            config.logger.error(f"Error en el bucle principal: {e}")
-        time.sleep(INTERVALO_ACTUALIZACION)
+            config.logger.error(f"Error: {e}")
+        time.sleep(INTERVALO)

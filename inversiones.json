@@ -1,0 +1,38 @@
+{
+  "BTCUSDT": {
+    "cantidad": 0.0,
+    "capital_invertido": 0.0,
+    "ganancia_deseada": 0.0,
+    "alcanzado": false
+  },
+  "ETHUSDT": {
+    "cantidad": 0.0,
+    "capital_invertido": 0.0,
+    "ganancia_deseada": 0.0,
+    "alcanzado": false
+  },
+  "BNBUSDT": {
+    "cantidad": 0.0,
+    "capital_invertido": 0.0,
+    "ganancia_deseada": 0.0,
+    "alcanzado": false
+  },
+  "SOLUSDT": {
+    "cantidad": 0.0,
+    "capital_invertido": 0.0,
+    "ganancia_deseada": 0.0,
+    "alcanzado": false
+  },
+  "XRPUSDT": {
+    "cantidad": 0.0,
+    "capital_invertido": 0.0,
+    "ganancia_deseada": 0.0,
+    "alcanzado": false
+  },
+  "TRXUSDT": {
+    "cantidad": 0.0,
+    "capital_invertido": 0.0,
+    "ganancia_deseada": 0.0,
+    "alcanzado": false
+  }
+}
